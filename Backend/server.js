@@ -29,11 +29,23 @@ app.use('/api/officers',    require('./Routes/officers'));
 // /       → operator view (SPA)
 const frontendPath = path.join(__dirname, '../Frontend');
 
-app.use(express.static(frontendPath));
+// Admin panel files
+app.use('/admin', express.static(path.join(frontendPath, 'admin')));
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
+app.get('/admin', (req, res) =>
+  res.sendFile(path.join(frontendPath, 'admin', 'index.html'))
+);
+
+app.get('/admin/login', (req, res) =>
+  res.sendFile(path.join(frontendPath, 'admin', 'index.html'))
+);
+
+// Operator View
+app.use(express.static(path.join(frontendPath, 'operator')));
+
+app.get('*', (req, res) =>
+  res.sendFile(path.join(frontendPath, 'operator', 'index.html'))
+);
 
 // ── Start ────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
