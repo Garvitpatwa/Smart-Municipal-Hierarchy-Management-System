@@ -1,9 +1,1146 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-  <title>Operator View</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jhansi Nagar Nigam — HMS Operator View</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   DESIGN TOKENS — Operator View
+   Navy #0A2342 · Saffron #E8872B · White · Slate #F4F6FB
+   Accent Green #138808
+   ================================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#0A2342;--navy-l:#0E2D54;--navy-d:#061729;
+  --gold:#E8872B;--gold-l:#FDF3E7;--gold-d:#C96E1A;
+  --green:#138808;--green-l:#E8F5E9;
+  --red:#C0392B;
+  --slate:#F4F6FB;--slate-d:#E8EBF4;
+  --border:#DDE2EF;--border-l:#EEF1F8;
+  --white:#FFFFFF;--text:#1A1E2E;--muted:#6B7280;--light:#9CA3AF;
+  --shadow-xs:0 1px 2px rgba(10,35,66,.06);
+  --shadow-sm:0 2px 8px rgba(10,35,66,.08),0 1px 2px rgba(10,35,66,.06);
+  --shadow-md:0 6px 20px rgba(10,35,66,.10),0 2px 6px rgba(10,35,66,.06);
+  --shadow-lg:0 16px 40px rgba(10,35,66,.12);
+  --r:8px;--r-lg:14px;--r-xl:20px;
+  --tf:0.15s cubic-bezier(.4,0,.2,1);--tm:0.25s cubic-bezier(.4,0,.2,1);--ts:0.4s cubic-bezier(.4,0,.2,1);
+}
+
+body{
+    font-family:'Inter','Noto Sans Devanagari',system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.6;
+    color:var(--text);
+    background:var(--slate);
+    min-height:100vh;
+
+    display:flex;
+    flex-direction:column;
+}
+
+/* ── TRICOLOR STRIPE ──────────────────────────────────────────── */
+.tricolor{height:5px;background:linear-gradient(90deg,#FF9933 0%,#FF9933 33.3%,#fff 33.3%,#fff 66.6%,#138808 66.6%,#138808 100%)}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.header{
+  background:linear-gradient(135deg,var(--navy-d) 0%,var(--navy) 55%,var(--navy-l) 100%);
+  color:var(--white);position:sticky;top:0;z-index:100;
+  box-shadow:0 3px 24px rgba(10,35,66,.4);
+}
+.header-main{
+  display:flex;align-items:center;gap:1.25rem;
+  padding:.85rem 1.5rem;max-width:1300px;margin:0 auto;width:100%;
+}
+.header-logo{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+  box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 0 3px rgba(232,135,43,.4);
+  animation:logoPulse 4s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 0 3px rgba(232,135,43,.35)}
+  50%    {box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 0 6px rgba(232,135,43,.15)}
+}
+.header-brand{flex:1;min-width:0}
+.header-org{
+  font-size:1.25rem;font-weight:800;letter-spacing:.2px;
+  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+}
+.header-org-hi{
+  font-size:.8rem;font-weight:500;color:rgba(255,255,255,.65);
+  display:block;margin-top:1px;letter-spacing:.3px;
+}
+.header-sub{
+  font-size:10.5px;color:rgba(255,255,255,.5);
+  text-transform:uppercase;letter-spacing:1px;font-weight:500;margin-top:2px;
+}
+.header-right{
+  display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;
+  flex-shrink:0;text-align:right;
+}
+.header-date{font-size:12px;color:rgba(255,255,255,.75);font-weight:500;letter-spacing:.2px}
+.header-time{
+  font-size:1.15rem;font-weight:800;color:var(--white);
+  font-variant-numeric:tabular-nums;letter-spacing:1px;
+  font-family:'Inter',monospace;
+}
+.header-ro-badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:rgba(19,136,8,.25);border:1px solid rgba(19,136,8,.4);
+  color:#81C784;border-radius:100px;
+  padding:.15rem .65rem;font-size:10.5px;font-weight:700;letter-spacing:.4px;
+  margin-top:.15rem;
+}
+
+/* Language Toggle & Admin Login */
+.header-controls{
+  display:flex;align-items:center;gap:.5rem;margin-top:.35rem;
+  flex-wrap:wrap;justify-content:flex-end;
+}
+.lang-toggle{
+  display:inline-flex;align-items:center;gap:2px;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);
+  border-radius:100px;padding:2px;cursor:pointer;
+}
+.lang-btn{
+  background:transparent;color:rgba(255,255,255,.7);
+  border:none;padding:.32rem .65rem;border-radius:100px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:all var(--tf);font-family:inherit;
+  letter-spacing:.4px;
+}
+.lang-btn:hover{color:var(--white)}
+.lang-btn.active{
+  background:rgba(19,136,8,.3);color:var(--white);
+  border:1px solid rgba(19,136,8,.5);
+}
+.btn-admin{
+  display:inline-flex;align-items:center;gap:.35rem;
+  background:rgba(232,135,43,.2);color:var(--gold);
+  border:1.5px solid rgba(232,135,43,.4);border-radius:100px;
+  padding:.3rem .75rem;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all var(--tf);
+  text-decoration:none;letter-spacing:.3px;
+  white-space:nowrap;
+}
+.btn-admin:hover{
+  background:rgba(232,135,43,.3);border-color:rgba(232,135,43,.6);
+  transform:translateY(-1px);box-shadow:0 2px 8px rgba(232,135,43,.2);
+}
+.btn-admin:active{transform:scale(.96)}
+
+/* Gold bottom border with Ashok Chakra accent */
+.header-bottom{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.header-bottom-left{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.header-bottom-right{display:flex;align-items:center;gap:.75rem}
+.hb-chip{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:100px;padding:.15rem .6rem;font-size:11px;font-weight:600;
+  color:rgba(255,255,255,.7);
+  margin:0 auto;
+  
+}
+.hb-chip.gold{border-color:rgba(232,135,43,.4);color:var(--gold);background:rgba(232,135,43,.12)}
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────── */
+.main{max-width:1300px;margin:0 auto;padding:1.75rem 1.5rem 3rem;flex:1;
+    width:100%}
+
+/* ── SEARCH ───────────────────────────────────────────────────── */
+.search-section{margin-bottom:1.75rem}
+.search-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:var(--gold-d);margin-bottom:.55rem;
+  display:flex;align-items:center;gap:.4rem;
+}
+.search-wrap{position:relative;max-width:520px}
+.search-input{
+  width:100%;padding:.72rem 1rem .72rem 3rem;
+  border:2px solid var(--border);border-radius:var(--r-lg);
+  font-size:14.5px;color:var(--text);background:var(--white);
+  font-family:inherit;transition:all var(--tm);
+  box-shadow:var(--shadow-sm);
+}
+.search-input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 4px rgba(10,35,66,.08),var(--shadow-sm)}
+.search-input::placeholder{color:var(--light)}
+.search-ico{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none;opacity:.45}
+.search-clear{
+  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:16px;color:var(--light);
+  padding:.2rem;border-radius:50%;transition:all var(--tf);display:none;
+  line-height:1;
+}
+.search-clear:hover{background:var(--slate-d);color:var(--text)}
+.search-clear.show{display:flex;align-items:center;justify-content:center}
+.search-hint{font-size:11.5px;color:var(--muted);margin-top:.45rem;padding-left:.1rem}
+
+/* ── SECTION HEADING ─────────────────────────────────────────── */
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;
+}
+.section-title{font-size:1rem;font-weight:800;color:var(--navy)}
+.section-count{
+  font-size:12px;font-weight:600;color:var(--muted);
+  background:var(--slate-d);border:1px solid var(--border);
+  border-radius:100px;padding:.15rem .65rem;
+}
+
+/* ── DEPARTMENT GRID ─────────────────────────────────────────── */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+
+/* ── DEPT ACCORDION ITEM ─────────────────────────────────────── */
+.dept-item{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow-xs);transition:all var(--tm);
+}
+.dept-item:hover{box-shadow:0 4px 16px rgba(10,35,66,.12);border-color:#C8D0E4;transform:translateY(-2px)}
+.dept-item.open{
+  border-color:var(--navy);box-shadow:var(--shadow-md);
+  grid-column:1/-1;/* span full width when open */
+}
+
+.dept-header{
+  display:flex;align-items:center;gap:.85rem;
+  padding:1.1rem 1.25rem;cursor:pointer;
+  transition:background var(--tf);user-select:none;
+  position:relative;
+}
+.dept-header:hover{background:#F7F9FF}
+.dept-item.open .dept-header{
+  background:linear-gradient(135deg,var(--navy-d),var(--navy));
+  color:var(--white);border-radius:0;
+}
+.dept-icon-wrap{
+  width:56px;height:56px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-shrink:0;
+  background:linear-gradient(135deg,#EEF2FF,#DDE4FF);
+  box-shadow:0 3px 12px rgba(10,35,66,.12);
+  transition:all var(--tm);
+}
+.dept-item:hover .dept-icon-wrap{
+  box-shadow:0 4px 16px rgba(10,35,66,.18);
+}
+.dept-item.open .dept-icon-wrap{
+  background:rgba(255,255,255,.15);
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.dept-info{flex:1;min-width:0}
+.dept-name-en{font-weight:700;font-size:.95rem;color:var(--navy);transition:color var(--tf)}
+.dept-item.open .dept-name-en{color:var(--white)}
+.dept-name-hi{font-size:.8rem;color:var(--muted);margin-top:1px;transition:color var(--tf)}
+.dept-item.open .dept-name-hi{color:rgba(255,255,255,.65)}
+.dept-chevron{
+  font-size:18px;color:var(--light);
+  transition:transform var(--ts),color var(--tf);
+  flex-shrink:0;
+}
+.dept-item.open .dept-chevron{transform:rotate(180deg);color:rgba(255,255,255,.7)}
+
+/* Officer count badge on card */
+.dept-count-badge{
+  position:absolute;top:.65rem;right:2.5rem;
+  font-size:10.5px;font-weight:700;
+  background:#EEF3FF;color:var(--navy);
+  border:1px solid #D0DBF0;border-radius:100px;
+  padding:.1rem .5rem;
+}
+.dept-item.open .dept-count-badge{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.2)}
+
+/* ── REPORT PANEL ────────────────────────────────────────────── */
+.report-panel{
+  display:none;border-top:1px solid var(--border-l);
+  animation:panelSlide .3s cubic-bezier(.4,0,.2,1);
+}
+.dept-item.open .report-panel{display:block}
+@keyframes panelSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+.report-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:.65rem;
+  padding:1rem 1.25rem .8rem;
+  background:linear-gradient(180deg,#FAFBFF,var(--white));
+  border-bottom:1px solid var(--border-l);
+}
+.report-meta{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.report-title-sm{font-size:.88rem;font-weight:700;color:var(--navy)}
+.report-date-badge{
+  font-size:11px;color:var(--muted);background:var(--slate);
+  border:1px solid var(--border);border-radius:100px;
+  padding:.15rem .6rem;font-weight:500;
+}
+.report-actions{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+
+/* ── BUTTONS ─────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.45rem .95rem;border-radius:var(--r);
+  font-size:13px;font-weight:600;cursor:pointer;border:none;
+  font-family:inherit;letter-spacing:.1px;
+  transition:all var(--tf);white-space:nowrap;
+}
+.btn:active{transform:scale(.96)}
+.btn-navy{background:var(--navy);color:var(--white);box-shadow:0 2px 8px rgba(10,35,66,.25)}
+.btn-navy:hover{background:var(--navy-l);box-shadow:0 4px 14px rgba(10,35,66,.35);transform:translateY(-1px)}
+.btn-ghost{background:var(--white);color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--slate);border-color:#C5CADD}
+.btn-green{background:var(--green);color:var(--white);box-shadow:0 2px 8px rgba(19,136,8,.25)}
+.btn-green:hover{background:#0e6b07;transform:translateY(-1px)}
+.btn-gold{background:var(--gold);color:var(--white);box-shadow:0 2px 8px rgba(232,135,43,.3)}
+.btn-gold:hover{background:var(--gold-d);transform:translateY(-1px)}
+.btn-sm{padding:.32rem .75rem;font-size:12px}
+
+/* ── REPORT TABLE ────────────────────────────────────────────── */
+.report-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.report-table{
+  width:100%;border-collapse:collapse;font-size:13px;
+  min-width:600px;border:2px solid #072a57;
+}
+.report-table thead th{
+  background:#072a57;color:var(--white);
+  padding:.85rem 1rem;font-size:11.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.7px;
+  white-space:nowrap;
+  position:sticky;top:0;z-index:5;
+  border:1px solid #072a57;
+  text-align:center;
+  vertical-align:middle;
+}
+.report-table thead th:first-child{border-radius:0}
+.report-table tbody tr:nth-child(even) td{background:#F7F9FF}
+.report-table tbody tr:hover td{
+  background:#E3F2FD;transition:background .15s;
+}
+.report-table tbody tr{
+  border-bottom:1px solid #DDE2EF;
+}
+.report-table td{
+  padding:1rem;border:1px solid #DDE2EF;
+  vertical-align:middle;
+  text-align:center;
+}
+.report-table tbody tr:last-child td{border-bottom:1px solid #DDE2EF}
+
+/* Cell content styles */
+.cell-sno{text-align:center;color:var(--muted);font-weight:700;font-size:12px}
+.cell-zone{text-align:center;vertical-align:middle}
+.cell-zone .zone-en{font-weight:700;color:var(--navy);text-align:center}
+.cell-zone .zone-hi{font-size:11.5px;color:var(--muted);margin-top:2px;text-align:center}
+.ward-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin:0;justify-content:center}
+.ward-chip{
+  background:linear-gradient(135deg,#EEF3FF,#E8EFFE);color:var(--navy);border:1.5px solid #D0DBF0;
+  border-radius:6px;padding:.25rem .5rem;font-size:11px;font-weight:600;
+  text-align:center;
+}
+.officer-card{padding:0;text-align:center}
+.officer-name{font-weight:700;font-size:13px;color:var(--navy);text-align:center}
+.officer-desig{font-size:11px;color:var(--muted);margin-top:3px;text-align:center}
+.officer-mobile{font-size:11px;color:var(--navy);font-family:monospace;margin-top:3px;letter-spacing:.3px;text-align:center}
+.cell-dash{text-align:center;color:var(--border);font-size:20px;padding:.5rem}
+.officer-sep{height:1px;background:rgba(0,0,0,.1);margin:6px 0}
+
+/* Zonal officer cell */
+.cell-zonal .officer-name{color:var(--green);font-weight:700}
+
+/* Empty / loading states */
+.report-empty{
+  text-align:center;padding:3rem 1rem;color:var(--muted);
+}
+.report-empty .es-icon{font-size:3rem;opacity:.2;margin-bottom:.75rem}
+.report-empty p{font-size:.9rem}
+.report-loading{
+  display:flex;align-items:center;justify-content:center;gap:.75rem;
+  padding:2.5rem;color:var(--muted);font-size:13.5px;
+}
+.spinner{
+  width:20px;height:20px;border:2.5px solid var(--border);
+  border-top-color:var(--navy);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NO RESULTS ──────────────────────────────────────────────── */
+.no-results{
+  text-align:center;padding:3.5rem 1rem;
+  color:var(--muted);animation:fadeUp .3s ease;
+}
+.no-results .nr-icon{font-size:3rem;opacity:.15;margin-bottom:.75rem}
+.no-results h3{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.35rem}
+.no-results p{font-size:.88rem}
+
+/* ── SKELETON LOADER ─────────────────────────────────────────── */
+.skeleton{background:linear-gradient(90deg,var(--slate) 0%,var(--slate-d) 50%,var(--slate) 100%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:6px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.skel-card{
+  height:82px;border-radius:var(--r-lg);margin-bottom:.5rem;
+  animation:fadeUp .3s ease both;
+}
+.skel-card:nth-child(2){animation-delay:.05s}
+.skel-card:nth-child(3){animation-delay:.1s}
+.skel-card:nth-child(4){animation-delay:.15s}
+
+/* ── FOOTER ──────────────────────────────────────────────────── */
+.footer{
+  background:var(--navy-d);color:rgba(255,255,255,.45);
+  border-top:3px solid var(--gold);
+  padding:1.25rem 1.5rem;
+  font-size:12px;text-align:center;
+}
+.footer-inner{max-width:1300px;margin:0 auto}
+.footer-top{
+  display:flex;align-items:center;justify-content:center;
+  gap:1.5rem;flex-wrap:wrap;margin-bottom:.65rem;
+}
+.footer-logo-wrap{
+  display:flex;align-items:center;gap:.5rem;
+}
+.footer-logo-icon{
+  width:32px;height:32px;background:rgba(255,255,255,.1);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.footer-org{font-weight:700;color:rgba(255,255,255,.75);font-size:13px}
+.footer-divider{color:rgba(255,255,255,.2)}
+.footer-bottom{
+  font-size:11px;color:rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  gap:1rem;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);
+  padding-top:.65rem;margin-top:.1rem;
+}
+.footer-bottom span{color:var(--gold);font-weight:600}
+.footer-version{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:100px;padding:.1rem .55rem;font-size:10.5px;
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fade-up{animation:fadeUp .35s cubic-bezier(.4,0,.2,1) both}
+
+/* Staggered cards */
+.dept-item{animation:fadeUp .3s cubic-bezier(.4,0,.2,1) both}
+.dept-item:nth-child(1){animation-delay:.04s}
+.dept-item:nth-child(2){animation-delay:.08s}
+.dept-item:nth-child(3){animation-delay:.12s}
+.dept-item:nth-child(4){animation-delay:.16s}
+.dept-item:nth-child(5){animation-delay:.20s}
+.dept-item:nth-child(6){animation-delay:.24s}
+.dept-item:nth-child(7){animation-delay:.28s}
+.dept-item:nth-child(8){animation-delay:.32s}
+
+/* ── PRINT ───────────────────────────────────────────────────── */
+@media print{
+  .header,.search-section,.section-head,.report-toolbar .report-actions,
+  .footer,.no-print{display:none!important}
+  body,html{background:white}
+  .dept-item{box-shadow:none!important;border:none!important;grid-column:auto!important}
+  .dept-item:not(.open){display:none!important}
+  .dept-header{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-table thead th{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media(max-width:1024px){
+  .header-controls{gap:.3rem}
+  .lang-btn{padding:.25rem .55rem;font-size:11px}
+  .btn-admin{padding:.25rem .65rem;font-size:11px}
+}
+@media(max-width:768px){
+  .header-main{padding:.7rem 1rem;gap:.85rem;flex-wrap:wrap}
+  .header-logo{width:44px;height:44px;font-size:22px}
+  .header-org{font-size:.88rem}
+  .header-time{font-size:1rem}
+  .header-right{width:100%;flex-direction:row;align-items:center;justify-content:space-between;gap:.25rem}
+  .header-controls{width:100%;margin-top:.35rem;justify-content:flex-start;gap:.4rem}
+  .main{padding:1.25rem 1rem 2.5rem}
+  .dept-grid{grid-template-columns:1fr}
+  .dept-item.open{grid-column:auto}
+  .header-date{font-size:11px}
+  .report-table{font-size:12px;min-width:500px}
+  .report-table thead th{padding:.65rem .75rem;font-size:10px}
+  .report-table td{padding:.75rem;font-size:12px}
+  .dept-icon-wrap{width:48px;height:48px;font-size:24px}
+  .ward-chip{padding:.2rem .4rem;font-size:10px}
+}
+@media(max-width:480px){
+  .header-main{flex-wrap:wrap}
+  .header-brand{flex-basis:100%}
+  .header-right{width:100%;flex-direction:row;align-items:center;justify-content:space-between;gap:.15rem;order:3}
+  .header-controls{flex-basis:100%;margin-top:.35rem;justify-content:flex-start;gap:.3rem}
+  .search-wrap{max-width:100%}
+  .lang-btn{padding:.2rem .5rem;font-size:10px}
+  .btn-admin{padding:.2rem .6rem;font-size:10px}
+  .report-table{font-size:11px;min-width:450px}
+  .report-table thead th{padding:.55rem .6rem;font-size:9px}
+  .report-table td{padding:.6rem;font-size:11px}
+}
+
+/* ── MISC ────────────────────────────────────────────────────── */
+.h-esc{display:inline}
+</style>
 </head>
 <body>
-  <h1>Operator View Working</h1>
+
+<!-- TRICOLOR -->
+<div class="tricolor"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-main">
+    <div class="header-logo">🏛️</div>
+    <div class="header-brand">
+      <div class="header-org">
+        Jhansi Nagar Nigam
+        <span style="color:rgba(255,255,255,.3);font-weight:300">|</span>
+        <span style="font-weight:500;font-size:.99rem">HMS</span>
+      </div>
+      <span class="header-org-hi">झांसी नगर निगम · स्मार्ट म्युनिसिपल हायरार्की मैनेजमेंट सिस्टम</span>
+      <div class="header-sub">Hierarchy Management System · Uttar Pradesh</div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="hdr-date">—</div>
+      <div class="header-time" id="hdr-time">—:—:—</div>
+      <!-- //<div class="header-ro-badge">✔ <span data-i18n="readOnly">Read-Only View</span></div> -->
+      <div class="header-controls no-print">
+        <div class="lang-toggle">
+          <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">English</button>
+          <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हिन्दी</button>
+        </div>
+        <button class="btn-admin" onclick="window.location.href='/admin'" title="Admin Panel">👤 <span data-i18n="adminLogin">Admin Login</span></button>
+      </div>
+    </div>
+  </div>
+  <div style="border-top:3px solid var(--gold)"></div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- SEARCH -->
+  <section class="search-section no-print">
+    <div class="search-label"><span data-i18n="searchDept">🔍 विभाग खोजें / Search Department</span></div>
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input
+        class="search-input" id="search-input" type="text"
+        placeholder="Search by name · नाम से खोजें  (e.g. Tax, कर, Health, स्वास्थ्य)"
+        autocomplete="off" spellcheck="false"
+        data-placeholder-en="Search by name (e.g. Tax, Health)"
+        data-placeholder-hi="नाम से खोजें (उदा. कर, स्वास्थ्य)"
+      >
+      <button class="search-clear" id="search-clear" title="Clear">✕</button>
+    </div>
+    <div class="search-hint" id="search-hint" data-i18n="searchHint">
+      Search in English or Hindi · अंग्रेज़ी या हिन्दी में खोजें
+    </div>
+  </section>
+
+  <!-- DEPARTMENTS -->
+  <div class="section-head no-print">
+    <div class="section-title" data-i18n="allDepts">📂 सभी विभाग / All Departments</div>
+    <div class="section-count" id="dept-count">—</div>
+  </div>
+
+  <div id="dept-container">
+    <!-- Skeleton while loading -->
+    <div class="dept-grid" id="skeleton-grid">
+      <div class="skel-card skeleton"></div>
+      <div class="skel-card skeleton"></div>
+      <div class="skel-card skeleton"></div>
+      <div class="skel-card skeleton"></div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+        Government of Uttar Pradesh &nbsp;|&nbsp; <span>Jhansi Nagar Nigam</span> &nbsp;|&nbsp; Smart Municipal HMS &nbsp;|&nbsp;
+        <span>Operator View</span> &nbsp;|&nbsp; Confidential — Official Use Only 
+</footer>
+
+<script>
+// ================================================================
+// OPERATOR VIEW — Pure read-only. No auth, no mutations.
+// Talks to the same backend API (public GET routes only).
+// ================================================================
+
+// ── Translation System ───────────────────────────────────────────
+const TRANSLATIONS = {
+  en: {
+    readOnly: 'Read-Only View',
+    adminLogin: 'Admin Login',
+    operatorPortal: 'Operator Portal',
+    searchDept: '🔍 Search Department',
+    searchHint: 'Search in English or Hindi',
+    allDepts: '📂 All Departments',
+    operatorView: 'Operator View',
+    noResults: 'No department found',
+    noResultsDesc: 'No department matches your search.',
+    depts: 'departments',
+    print: 'Print',
+    pdf: 'PDF',
+    excel: 'Excel',
+    l1Officer: 'L1 Officers',
+    level: 'Levels',
+    hierarchyReport: 'Hierarchy Report',
+    noOfficers: 'No officers added yet for this department.'
+  },
+  hi: {
+    readOnly: 'केवल पठन दृश्य',
+    adminLogin: 'प्रशासक लॉगिन',
+    operatorPortal: 'ऑपरेटर पोर्टल',
+    searchDept: '🔍 विभाग खोजें',
+    searchHint: 'अंग्रेज़ी या हिन्दी में खोजें',
+    allDepts: '📂 सभी विभाग',
+    operatorView: 'ऑपरेटर दृश्य',
+    noResults: 'कोई विभाग नहीं मिला',
+    noResultsDesc: 'आपकी खोज से कोई विभाग मेल नहीं खाता।',
+    depts: 'विभाग',
+    print: 'प्रिंट',
+    pdf: 'PDF',
+    excel: 'एक्सेल',
+    l1Officer: 'L1 अधिकारी',
+    level: 'स्तर',
+    hierarchyReport: 'पदानुक्रम रिपोर्ट',
+    noOfficers: 'इस विभाग में अभी तक कोई अधिकारी नहीं है।'
+  }
+};
+
+let CURRENT_LANG = localStorage.getItem('hms-lang') || 'en';
+
+function setLanguage(lang) {
+  if (lang !== 'en' && lang !== 'hi') return;
+  CURRENT_LANG = lang;
+  localStorage.setItem('hms-lang', lang);
+  
+  // Update button states
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-hi').classList.toggle('active', lang === 'hi');
+  
+  // Update all i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      el.textContent = TRANSLATIONS[lang][key];
+    }
+  });
+  
+  // Update search placeholder
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    if (lang === 'en') {
+      searchInput.placeholder = 'Search by name (e.g. Tax, Health)';
+    } else {
+      searchInput.placeholder = 'नाम से खोजें (उदा. कर, स्वास्थ्य)';
+    }
+  }
+  
+  // Re-render if data is loaded
+  if (ALL_DEPTS.length) {
+    renderDepts();
+    if (OPEN_ID) {
+      renderReport(OPEN_ID);
+    }
+  }
+}
+
+function t(key) {
+  return (TRANSLATIONS[CURRENT_LANG] && TRANSLATIONS[CURRENT_LANG][key]) || TRANSLATIONS['en'][key] || key;
+}
+
+
+const API = '/api';
+
+// ── Helpers ─────────────────────────────────────────────────────
+const h = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc = s => h(s);
+
+// ── Clock ────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const dateEl = document.getElementById('hdr-date');
+  const timeEl = document.getElementById('hdr-time');
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString(CURRENT_LANG === 'hi' ? 'hi-IN' : 'en-IN', {
+      weekday:'long', day:'numeric', month:'long', year:'numeric'
+    });
+  }
+  if (timeEl) {
+    timeEl.textContent = now.toLocaleTimeString('en-IN', {
+      hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+    });
+  }
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── State ────────────────────────────────────────────────────────
+let ALL_DEPTS   = [];
+let ALL_ZONES   = [];
+let ALL_OFFS    = [];
+
+// Initialize language on load
+setLanguage(CURRENT_LANG);
+
+let OPEN_ID     = null;   // currently open dept id
+let SEARCH_Q    = '';
+
+// ── Fetch all public data ────────────────────────────────────────
+async function fetchData() {
+  try {
+    const [depts, zones, offs] = await Promise.all([
+      fetch(API + '/departments').then(r => r.json()),
+      fetch(API + '/zones').then(r => r.json()),
+      fetch(API + '/officers').then(r => r.json()),
+    ]);
+    ALL_DEPTS = Array.isArray(depts) ? depts : [];
+    ALL_ZONES = Array.isArray(zones) ? zones : [];
+    ALL_OFFS  = Array.isArray(offs)  ? offs.map(o => Object.assign({isZonal:false}, o, {isZonal:!!o.isZonal})) : [];
+  } catch (e) {
+    console.error('HMS API error:', e);
+    ALL_DEPTS = []; ALL_ZONES = []; ALL_OFFS = [];
+  }
+}
+
+// ── Data helpers (mirror admin logic, READ ONLY) ─────────────────
+function getOffs(deptId)   { return ALL_OFFS.filter(o => o.deptId === deptId); }
+function offId(o)          { return o._id || o.id; }
+function dId(d)            { return d._id || d.id; }
+function supIds(o)         { return Array.isArray(o.supIds) ? o.supIds : (o.supId ? [o.supId] : []); }
+function getOffById(id)    { return ALL_OFFS.find(o => offId(o) === id); }
+function getZoneById(id)   { return ALL_ZONES.find(z => (z._id || z.id) === id); }
+
+function getDeptMaxLevel(deptId) {
+  const offs = getOffs(deptId);
+  if (!offs.length) return 1;
+  return offs.reduce((m, o) => Math.max(m, o.level), 1);
+}
+function getDeptZonalRecord(deptId) {
+  return getOffs(deptId).find(o => o.isZonal) || null;
+}
+
+function findZoneByWards(wards) {
+  if (!wards || !wards.length) return null;
+  let best = null, bestScore = 0;
+  ALL_ZONES.forEach(z => {
+    const score = wards.filter(w => z.wards.includes(w)).length;
+    if (score > bestScore) { bestScore = score; best = z; }
+  });
+  return bestScore > 0 ? best : null;
+}
+
+// ── Report row building (same algorithm as admin) ─────────────────
+function buildReportRows(deptId) {
+  const offs = getOffs(deptId);
+  const maxLevel = getDeptMaxLevel(deptId);
+  const l1s = offs.filter(o => o.level === 1);
+  const zonalRec = getDeptZonalRecord(deptId);
+  const rows = [];
+
+  l1s.forEach((l1, index) => {
+    const zone = findZoneByWards(l1.wards);
+    const chains = [];
+    let currentLevelOffs = [l1];
+
+    for (let lvl = 2; lvl <= maxLevel; lvl++) {
+      let nextOffs;
+      if (zonalRec && lvl === zonalRec.level && currentLevelOffs.length) {
+        nextOffs = [zonalRec];
+      } else {
+        const nextIds = [];
+        currentLevelOffs.forEach(o => supIds(o).forEach(sid => { if (!nextIds.includes(sid)) nextIds.push(sid); }));
+        nextOffs = offs.filter(o => nextIds.includes(offId(o)));
+      }
+      chains.push(nextOffs);
+      currentLevelOffs = nextOffs;
+    }
+    rows.push({ no: index + 1, zone, wards: l1.wards || [], l1, chains, maxLevel });
+  });
+  return rows;
+}
+
+// ── Search ───────────────────────────────────────────────────────
+function filteredDepts() {
+  const q = SEARCH_Q.toLowerCase().trim();
+  if (!q) return ALL_DEPTS;
+  return ALL_DEPTS.filter(d =>
+    (d.name  || '').toLowerCase().includes(q) ||
+    (d.hindi || '').toLowerCase().includes(q)
+  );
+}
+
+// ── Render departments grid ───────────────────────────────────────
+function renderDepts() {
+  const container = document.getElementById('dept-container');
+  const countEl   = document.getElementById('dept-count');
+  const depts = filteredDepts();
+
+  if (countEl) countEl.textContent = depts.length + ' ' + t('depts');
+
+  if (!depts.length) {
+    container.innerHTML = `
+      <div class="no-results fade-up">
+        <div class="nr-icon">🔍</div>
+        <h3>${CURRENT_LANG === 'hi' ? 'कोई विभाग नहीं मिला' : t('noResults')}</h3>
+        <p>"<strong>${esc(SEARCH_Q)}</strong>" ${CURRENT_LANG === 'hi' ? 'से मिलता-जुलता कोई विभाग नहीं है।' : t('noResultsDesc')}</p>
+      </div>`;
+    return;
+  }
+
+  // Build grid — when a dept is open it spans full width
+  const gridHtml = depts.map(d => buildDeptItem(d)).join('');
+  container.innerHTML = `<div class="dept-grid" id="dept-grid">${gridHtml}</div>`;
+
+  // Bind click handlers
+  depts.forEach(d => {
+    const item = document.getElementById('dept-item-' + dId(d));
+    if (item) item.addEventListener('click', e => handleDeptClick(e, dId(d)));
+  });
+
+  // Re-open if one was already open
+  if (OPEN_ID && depts.find(d => dId(d) === OPEN_ID)) {
+    openDept(OPEN_ID);
+  }
+}
+
+function buildDeptItem(d) {
+  const id = dId(d);
+  const offCount = getOffs(id).filter(o => !o.isZonal).length;
+  const deptName = CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name;
+  const deptHindi = CURRENT_LANG === 'en' && d.hindi ? d.hindi : '';
+  
+  return `
+    <div class="dept-item" id="dept-item-${esc(id)}">
+      <div class="dept-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="dept-icon-wrap">${esc(d.icon || '🏢')}</div>
+        <div class="dept-info">
+          <div class="dept-name-en">${esc(CURRENT_LANG === 'en' ? d.name : d.hindi || d.name)}</div>
+          ${CURRENT_LANG === 'en' && d.hindi ? `<div class="dept-name-hi">${esc(d.hindi)}</div>` : ''}
+        </div>
+        <span class="dept-chevron">▾</span>
+      </div>
+      <div class="report-panel" id="report-panel-${esc(id)}">
+        <div class="report-loading"><div class="spinner"></div> ${CURRENT_LANG === 'hi' ? 'रिपोर्ट लोड हो रही है…' : 'Loading report…'}</div>
+      </div>
+    </div>`;
+}
+
+function handleDeptClick(e, id) {
+  // Ignore clicks on buttons inside report panel
+  if (e.target.closest('.report-actions')) return;
+  if (e.target.closest('.report-panel')) return;
+
+  if (OPEN_ID === id) {
+    closeDept(id);
+  } else {
+    if (OPEN_ID) closeDept(OPEN_ID);
+    openDept(id);
+  }
+}
+
+function closeDept(id) {
+  const item = document.getElementById('dept-item-' + id);
+  if (!item) return;
+  item.classList.remove('open');
+  const hdr = item.querySelector('.dept-header');
+  if (hdr) hdr.setAttribute('aria-expanded', 'false');
+  OPEN_ID = null;
+}
+
+function openDept(id) {
+  const item = document.getElementById('dept-item-' + id);
+  if (!item) return;
+  item.classList.add('open');
+  const hdr = item.querySelector('.dept-header');
+  if (hdr) hdr.setAttribute('aria-expanded', 'true');
+  OPEN_ID = id;
+  renderReport(id);
+
+  // Smooth scroll into view
+  setTimeout(() => item.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+// ── Report rendering ─────────────────────────────────────────────
+function renderReport(deptId) {
+  const panel = document.getElementById('report-panel-' + deptId);
+  if (!panel) return;
+
+  const d = ALL_DEPTS.find(d => dId(d) === deptId);
+  if (!d) return;
+
+  const rows = buildReportRows(deptId);
+  const maxLevel = getDeptMaxLevel(deptId);
+
+  // Build table HTML
+  let hdrs = '<th style="width:60px;text-align:center">क्र. / S.No</th><th>Zone / जोन</th><th>Wards / वार्ड</th><th>L1</th>';
+  for (let i = 2; i <= maxLevel; i++) hdrs += `<th>L${i}</th>`;
+
+  let trs = '';
+  if (!rows.length) {
+    trs = `<tr><td colspan="${3 + maxLevel}" class="report-empty">
+      <div class="es-icon">📋</div>
+      <p>${t('noOfficers')}</p>
+    </td></tr>`;
+  } else {
+    rows.forEach(r => {
+      const zoneCell = r.zone
+        ? `<div class="cell-zone">
+             <div class="zone-en">${esc(r.zone.zone)}</div>
+             ${r.zone.zoneHindi ? `<div class="zone-hi">${esc(r.zone.zoneHindi)}</div>` : ''}
+           </div>`
+        : `<span style="color:var(--muted);font-size:12px">—</span>`;
+
+      const wardCell = `<div class="ward-chips">${(r.wards || []).map(n => `<span class="ward-chip">${esc(n)}</span>`).join('')}</div>`;
+
+      const l1Cell = officerCellHTML([r.l1], null, false);
+
+      let levelCells = '';
+      r.chains.forEach(oList => {
+        levelCells += `<td>${officerCellHTML(oList, r.zone, true)}</td>`;
+      });
+
+      trs += `<tr>
+        <td class="cell-sno">${r.no}</td>
+        <td class="cell-zone">${zoneCell}</td>
+        <td>${wardCell}</td>
+        ${l1Cell}
+        ${levelCells}
+      </tr>`;
+    });
+  }
+
+  const tableHtml = `
+    <div class="report-wrap">
+      <table class="report-table">
+        <thead><tr>${hdrs}</tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>`;
+
+  const today = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+
+  panel.innerHTML = `
+    <div class="report-toolbar no-print">
+      <div class="report-meta">
+        <div class="report-title-sm">📋 ${esc(CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name)} — ${CURRENT_LANG === 'hi' ? 'पदानुक्रम रिपोर्ट' : 'Hierarchy Report'}</div>
+        <div class="report-date-badge">📅 ${esc(today)}</div>
+        <div class="report-date-badge" style="background:var(--green-l);border-color:rgba(19,136,8,.2);color:var(--green)">
+          ${rows.length} ${t('l1Officer')} · L1–L${maxLevel} ${t('level')}
+        </div>
+      </div>
+      <div class="report-actions">
+        <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="${t('print')}">🖨️ ${t('print')}</button>
+        <button class="btn btn-navy btn-sm no-print" onclick="exportPDF('${esc(deptId)}')" title="${t('pdf')}">📄 ${t('pdf')}</button>
+        <button class="btn btn-green btn-sm no-print" onclick="exportExcel('${esc(deptId)}')" title="${t('excel')}">📊 ${t('excel')}</button>
+      </div>
+    </div>
+    ${tableHtml}`;
+}
+
+// Officer cell HTML helper
+function officerCellHTML(officerList, zone, wrap) {
+  if (!officerList || !officerList.length) {
+    return wrap ? '' : '<td class="cell-dash">—</td>';
+  }
+
+  const lines = officerList.map((o, idx) => {
+    let name = o.name, mobile = o.mobile, desig = o.desig;
+    let isZonal = !!o.isZonal;
+
+    if (isZonal) {
+      if (zone && zone.zonalOfficerName) {
+        name   = zone.zonalOfficerName;
+        mobile = zone.zonalOfficerMobile || '';
+      } else {
+        name = 'Unassigned';
+        mobile = '';
+      }
+      desig = '';
+    }
+
+    const sep = (idx > 0) ? '<div class="officer-sep"></div>' : '';
+    return `${sep}<div class="officer-card${isZonal ? ' cell-zonal' : ''}">
+      <div class="officer-name">${esc(name)}</div>
+      ${desig  ? `<div class="officer-desig">${esc(desig)}</div>` : ''}
+      ${mobile ? `<div class="officer-mobile">📞 ${esc(mobile)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  return wrap ? lines : `<td class="cell-dash">${lines}</td>`;
+}
+
+// ── PDF Export ───────────────────────────────────────────────────
+function exportPDF(deptId) {
+  const d = ALL_DEPTS.find(d => dId(d) === deptId);
+  if (!d) return;
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    const deptDisplayName = CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name;
+    
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+    doc.text(deptDisplayName + ' — Hierarchy Report', 14, 15);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.text('Jhansi Nagar Nigam | Generated: ' + new Date().toLocaleDateString('en-IN'), 14, 22);
+
+    const maxLevel = getDeptMaxLevel(deptId);
+    const rows = buildReportRows(deptId);
+
+    function fmtList(list, zone) {
+      if (!list || !list.length) return '—';
+      return list.map(o => {
+        let dn = o.name, dd = o.desig;
+        if (o.isZonal) {
+          dn = (zone && zone.zonalOfficerName) ? zone.zonalOfficerName : 'Unassigned';
+          dd = '';
+        }
+        return dn + (dd ? '\n' + dd : '');
+      }).join('\n\n');
+    }
+
+    const head = ['S.No', 'Zone', 'Wards', 'L1'];
+    for (let i = 2; i <= maxLevel; i++) head.push('L' + i);
+
+    const body = rows.map(r => {
+      const zl = r.zone ? (r.zone.zone + (r.zone.zoneHindi ? ' (' + r.zone.zoneHindi + ')' : '')) : 'Unassigned';
+      const row = [String(r.no), zl, r.wards.join(', '), r.l1.name + (r.l1.desig ? '\n' + r.l1.desig : '')];
+      r.chains.forEach(ol => row.push(fmtList(ol, r.zone)));
+      return row;
+    });
+
+    doc.autoTable({
+      head: [head], body,
+      startY: 28,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [7, 42, 87], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [240, 246, 255] },
+      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 38 }, 2: { cellWidth: 44 } }
+    });
+
+    doc.save(deptDisplayName.replace(/\s+/g, '_') + '_Report.pdf');
+  } catch (e) {
+    window.print();
+  }
+}
+
+// ── Excel Export ──────────────────────────────────────────────────
+function exportExcel(deptId) {
+  const d = ALL_DEPTS.find(d => dId(d) === deptId);
+  if (!d) return;
+  try {
+    const deptDisplayName = CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name;
+    const maxLevel = getDeptMaxLevel(deptId);
+    const rows = buildReportRows(deptId);
+
+    function fmtCell(list, zone) {
+      if (!list || !list.length) return '—';
+      return list.map(o => {
+        let dn = o.name, dd = o.desig, dm = o.mobile;
+        if (o.isZonal) {
+          dn = (zone && zone.zonalOfficerName) ? zone.zonalOfficerName : 'Unassigned';
+          dm = (zone && zone.zonalOfficerMobile) ? zone.zonalOfficerMobile : '';
+          dd = '';
+        }
+        let l = dn;
+        if (dd) l += ' (' + dd + ')';
+        if (dm) l += ' [' + dm + ']';
+        return l;
+      }).join('\n');
+    }
+
+    function fmtL1(o) {
+      let l = o.name;
+      if (o.desig)  l += ' (' + o.desig  + ')';
+      if (o.mobile) l += ' [' + o.mobile + ']';
+      return l;
+    }
+
+    const headers = ['S.No', 'Zone', 'Wards', 'L1'];
+    for (let i = 2; i <= maxLevel; i++) headers.push('L' + i);
+
+    const dataRows = rows.map(r => {
+      const zl = r.zone ? (r.zone.zone + (r.zone.zoneHindi ? ' (' + r.zone.zoneHindi + ')' : '')) : 'Unassigned';
+      const row = [r.no, zl, r.wards.join(', '), fmtL1(r.l1)];
+      r.chains.forEach(ol => row.push(fmtCell(ol, r.zone)));
+      return row;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([headers].concat(dataRows));
+    ws['!cols'] = headers.map((_, i) => i === 0 ? { wch: 8 } : { wch: 28 });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Hierarchy Report');
+    XLSX.writeFile(wb, deptDisplayName.replace(/\s+/g, '_') + '_Report.xlsx');
+  } catch (e) {
+    alert('Excel export failed. Please try PDF or Print.');
+  }
+}
+
+// ── Search wiring ─────────────────────────────────────────────────
+function setupSearch() {
+  const input = document.getElementById('search-input');
+  const clear = document.getElementById('search-clear');
+  const hint  = document.getElementById('search-hint');
+
+  input.addEventListener('input', () => {
+    SEARCH_Q = input.value;
+    clear.classList.toggle('show', !!SEARCH_Q);
+    if (SEARCH_Q) {
+      const searchMsg = CURRENT_LANG === 'hi' 
+        ? `"${SEARCH_Q}" के लिए खोज रहे हैं…`
+        : `Searching for "${SEARCH_Q}"…`;
+      hint.textContent = searchMsg;
+    } else {
+      hint.textContent = t('searchHint');
+    }
+    // Don't close open dept when just searching
+    renderDepts();
+  });
+
+  clear.addEventListener('click', () => {
+    input.value = '';
+    SEARCH_Q = '';
+    clear.classList.remove('show');
+    hint.textContent = t('searchHint');
+    input.focus();
+    renderDepts();
+  });
+
+  // Keyboard: Escape clears search
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { clear.click(); }
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────
+async function boot() {
+  setupSearch();
+  await fetchData();
+  renderDepts();
+}
+
+boot();
+</script>
 </body>
 </html>
