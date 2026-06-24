@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Jhansi Nagar Nigam HMS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A2342;--navy-light:#0E2D54;--navy-dark:#061729;
+  --gold:#E8872B;--gold-light:#FDF3E7;--gold-dark:#C96E1A;
+  --green:#138808;--green-light:#E8F5E9;
+  --red:#C0392B;--red-light:#FDEDEC;
+  --ash:#F5F6FA;--border:#E0E4EE;--white:#FFFFFF;
+  --text:#1A1E2E;--text-muted:#6B7280;--text-light:#9CA3AF;
+  --shadow-sm:0 1px 3px rgba(10,35,66,.08),0 1px 2px rgba(10,35,66,.06);
+  --shadow-md:0 4px 12px rgba(10,35,66,.10),0 2px 4px rgba(10,35,66,.06);
+  --shadow-lg:0 16px 40px rgba(10,35,66,.14),0 4px 8px rgba(10,35,66,.06);
+  --shadow-xl:0 32px 64px rgba(10,35,66,.18);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t-fast:0.15s cubic-bezier(.4,0,.2,1);--t-med:0.25s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'Inter','Noto Sans Devanagari',system-ui,sans-serif;font-size:14px;line-height:1.6;color:var(--text);background:var(--ash);min-height:100vh}
+
+/* ── LOGIN PAGE ── */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 50%,var(--navy-light) 100%);padding:1rem;position:relative;overflow:hidden}
+.login-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(232,135,43,.15) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(19,136,8,.08) 0%,transparent 50%)}
+.login-card{background:var(--white);border-radius:var(--r-xl);padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:var(--shadow-xl);border:1px solid rgba(255,255,255,.1);position:relative;z-index:1;animation:loginSlide .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes loginSlide{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+.login-emblem{width:64px;height:64px;background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 1.25rem;box-shadow:0 8px 24px rgba(10,35,66,.25)}
+.login-title{text-align:center;font-size:1.2rem;font-weight:800;color:var(--navy);margin-bottom:.25rem}
+.login-sub{text-align:center;font-size:.8rem;color:var(--text-muted);margin-bottom:1.75rem}
+.login-badge{display:inline-flex;align-items:center;gap:.3rem;background:var(--gold-light);color:var(--gold-dark);border:1px solid rgba(232,135,43,.25);border-radius:100px;padding:.2rem .75rem;font-size:11px;font-weight:700;margin-bottom:1.25rem;letter-spacing:.4px}
+.login-form-wrap{text-align:left}
+
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 60%,var(--navy-light) 100%);color:var(--white);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(10,35,66,.35);border-bottom:3px solid var(--gold)}
+.topbar-inner{display:flex;align-items:center;gap:1rem;padding:.75rem 1.5rem;max-width:1400px;margin:0 auto;width:100%}
+.topbar-emblem{width:46px;height:46px;background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.topbar-branding{flex:1;min-width:0}
+.topbar-org{font-size:1rem;font-weight:700;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-subtitle-text{font-size:11px;color:rgba(255,255,255,.65);font-weight:400;letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.admin-badge-bar{background:linear-gradient(90deg,rgba(232,135,43,.25),rgba(232,135,43,.1));border:1px solid rgba(232,135,43,.4);border-radius:100px;padding:.22rem .75rem;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:.35rem}
+.save-status{font-size:11.5px;padding:.28rem .7rem;border-radius:100px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);transition:all var(--t-med);white-space:nowrap}
+.save-status.saving{background:rgba(232,135,43,.25);border-color:var(--gold);color:var(--gold)}
+.save-status.saved{background:rgba(19,136,8,.25);border-color:#4CAF50;color:#81C784}
+.lang-switch{display:flex;align-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:3px;gap:2px}
+.lang-switch button{background:none;border:none;color:rgba(255,255,255,.65);cursor:pointer;font-size:12px;font-weight:600;padding:.22rem .6rem;border-radius:100px;transition:all var(--t-fast);font-family:inherit}
+.lang-switch button.active{background:var(--white);color:var(--navy)}
+.logout-btn{background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);color:#EF9A9A;border-radius:100px;padding:.28rem .85rem;font-size:12px;font-weight:600;cursor:pointer;transition:all var(--t-fast);font-family:inherit}
+.logout-btn:hover{background:var(--red);color:var(--white);border-color:var(--red)}
+.breadcrumb-bar{background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08)}
+.breadcrumb-inner{max-width:1400px;margin:0 auto;padding:.4rem 1.5rem;display:flex;align-items:center;gap:.4rem;font-size:12px;color:rgba(255,255,255,.55)}
+.breadcrumb-inner a{color:rgba(255,255,255,.7);cursor:pointer;transition:color var(--t-fast)}
+.breadcrumb-inner a:hover{color:var(--gold)}
+.breadcrumb-inner .sep{opacity:.4;font-size:10px}
+.breadcrumb-inner span{color:rgba(255,255,255,.85);font-weight:500}
+.main{flex:1;padding:2rem 1.5rem;max-width:1400px;margin:0 auto;width:100%}
+.gov-footer{background:var(--navy);color:rgba(255,255,255,.5);text-align:center;font-size:11px;padding:.6rem 1rem;border-top:2px solid var(--gold);letter-spacing:.4px}
+.gov-footer span{color:var(--gold);font-weight:600}
+
+/* ── SHARED COMPONENTS ── */
+.page-header{margin-bottom:1.75rem;animation:slideDown .4s cubic-bezier(.4,0,.2,1)}
+.page-header h1{font-size:1.45rem;font-weight:700;color:var(--navy);line-height:1.2}
+.page-header p{font-size:.88rem;color:var(--text-muted);margin-top:.3rem}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow var(--t-med);animation:fadeUp .3s cubic-bezier(.4,0,.2,1)}
+.card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;background:linear-gradient(180deg,#FAFBFF 0%,var(--white) 100%)}
+.card-title{font-size:.95rem;font-weight:700;color:var(--navy);flex:1}
+.card-subtitle{font-size:.78rem;color:var(--text-muted);font-weight:400;margin-top:1px}
+.card-body{padding:1.25rem}
+
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1.1rem;margin-top:.25rem}
+.dept-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:1.6rem 1.25rem 1.3rem;cursor:pointer;transition:all var(--t-med);text-align:center;position:relative;box-shadow:var(--shadow-sm);animation:fadeUp .35s cubic-bezier(.4,0,.2,1)}
+.dept-card:hover{border-color:var(--navy);box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.dept-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto .9rem;background:linear-gradient(135deg,#EEF2FF,#E0E8FF);box-shadow:0 2px 8px rgba(10,35,66,.1);transition:transform var(--t-med),box-shadow var(--t-med)}
+.dept-card:hover .dept-icon{transform:scale(1.08);box-shadow:0 6px 20px rgba(10,35,66,.15)}
+.dept-name{font-weight:700;font-size:.93rem;color:var(--navy);margin-bottom:.3rem}
+.dept-hindi{color:var(--text-muted);font-size:.8rem}
+.zone-master-card{border-color:rgba(232,135,43,.35);background:linear-gradient(135deg,#FFFBF5,var(--white))}
+.zone-master-card:hover{border-color:var(--gold)}
+.zone-master-card .dept-icon{background:linear-gradient(135deg,#FDF3E7,#FDEBD0)}
+.add-dept-card{border-style:dashed;border-color:var(--border);background:var(--ash);box-shadow:none}
+.add-dept-card:hover{border-color:var(--navy);background:var(--white)}
+.add-dept-card .dept-icon{background:var(--border)}
+.add-dept-card .dept-name{color:var(--text-muted)}
+.dept-del-btn{position:absolute;top:.5rem;right:.5rem;width:26px;height:26px;border-radius:50%;background:var(--red-light);color:var(--red);border:1px solid rgba(192,57,43,.2);font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all var(--t-fast);z-index:2}
+.dept-del-btn:hover{background:var(--red);color:var(--white)}
+.dept-card:hover .dept-del-btn{display:flex}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.75rem}
+.stat-box{background:linear-gradient(135deg,var(--ash),var(--white));border:1px solid var(--border);border-radius:var(--r-md);padding:1rem 1.1rem;transition:all var(--t-med)}
+.stat-box:hover{border-color:var(--navy);box-shadow:var(--shadow-sm)}
+.stat-icon{font-size:1.4rem;margin-bottom:.4rem}
+.stat-value{font-size:1.6rem;font-weight:800;color:var(--navy);line-height:1}
+.stat-label{font-size:11.5px;color:var(--text-muted);margin-top:.25rem;font-weight:500}
+
+.sec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;max-width:640px}
+.sec-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);cursor:pointer;transition:all var(--t-med);box-shadow:var(--shadow-sm);overflow:hidden;position:relative}
+.sec-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--navy),var(--gold));transform:scaleX(0);transform-origin:left;transition:transform var(--t-med)}
+.sec-card:hover{border-color:var(--navy);box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.sec-card:hover::before{transform:scaleX(1)}
+.sec-card-body{padding:1.75rem 1.25rem;text-align:center}
+.sec-card-icon{font-size:2.4rem;margin-bottom:.7rem}
+.sec-card-title{font-weight:700;font-size:.95rem;color:var(--navy);margin-bottom:.3rem}
+.sec-card-sub{color:var(--text-muted);font-size:.8rem;margin-bottom:.6rem}
+
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all var(--t-fast);white-space:nowrap;font-family:inherit;letter-spacing:.1px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--navy-light),var(--navy));color:var(--white);box-shadow:0 2px 8px rgba(10,35,66,.25)}
+.btn-primary:hover{box-shadow:0 4px 14px rgba(10,35,66,.35);transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--white);box-shadow:0 2px 8px rgba(232,135,43,.3)}
+.btn-gold:hover{box-shadow:0 4px 14px rgba(232,135,43,.4);transform:translateY(-1px)}
+.btn-secondary{background:var(--white);color:var(--text);border:1.5px solid var(--border)}
+.btn-secondary:hover{background:var(--ash);border-color:#C5CADD}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid transparent}
+.btn-ghost:hover{background:var(--ash);border-color:var(--border)}
+.btn-sm{padding:.32rem .75rem;font-size:12.5px}
+.btn-icon{width:30px;height:30px;padding:0;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text-muted);transition:all var(--t-fast);font-family:inherit}
+.btn-icon:hover{background:var(--ash);border-color:#C5CADD;color:var(--text)}
+.btn-icon.danger:hover{background:var(--red-light);border-color:rgba(192,57,43,.3);color:var(--red)}
+
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:.38rem;letter-spacing:.1px}
+.form-control{display:block;width:100%;padding:.52rem .85rem;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13.5px;color:var(--text);background:var(--white);transition:border-color var(--t-fast),box-shadow var(--t-fast);font-family:inherit}
+.form-control:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(10,35,66,.1)}
+.form-control::placeholder{color:var(--text-light)}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:.3rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:560px){.form-row{grid-template-columns:1fr}}
+.form-control.field-invalid{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(192,57,43,.1)!important}
+.field-error{font-size:11.5px;color:var(--red);margin-top:.28rem;display:none}
+.field-error.show{display:block}
+select.form-control{cursor:pointer}
+select[multiple]{padding:.25rem}
+select[multiple] option{padding:.35rem .5rem;border-radius:4px;margin-bottom:2px}
+select[multiple] option:checked{background:var(--navy);color:var(--white)}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:linear-gradient(180deg,#F0F4FF,#EBF0FB);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);padding:.7rem 1rem;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:.72rem 1rem;border-bottom:1px solid #F0F2F8;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background var(--t-fast)}
+tbody tr:hover td{background:#F7F9FF}
+.report-table thead th{background:var(--navy);color:var(--white);border-bottom:none}
+.report-table tbody tr:nth-child(even) td{background:#F7F9FF}
+.report-table tbody tr:hover td{background:#EEF3FF}
+
+.badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:100px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge-primary{background:#EEF3FF;color:var(--navy);border:1px solid #D0DBF0}
+.badge-gold{background:var(--gold-light);color:var(--gold-dark);border:1px solid rgba(232,135,43,.2)}
+.badge-warn{background:#FFF8E7;color:#B7770D;border:1px solid #F5D87A}
+.badge-success{background:var(--green-light);color:var(--green);border:1px solid rgba(19,136,8,.2)}
+.lbadge{width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.1)}
+.l1{background:linear-gradient(135deg,#BBDEFB,#90CAF9);color:#0D47A1}
+.l2{background:linear-gradient(135deg,#E1BEE7,#CE93D8);color:#4A148C}
+.l3{background:linear-gradient(135deg,#C8E6C9,#A5D6A7);color:#1B5E20}
+.l4{background:linear-gradient(135deg,#FFE0B2,#FFCC80);color:#BF360C}
+.l5{background:linear-gradient(135deg,#FFCDD2,#EF9A9A);color:#880E4F}
+.l6{background:linear-gradient(135deg,#B2EBF2,#80DEEA);color:#006064}
+.l7{background:linear-gradient(135deg,#DCEDC8,#C5E1A5);color:#33691E}
+.l8{background:linear-gradient(135deg,#F5F5F5,#E0E0E0);color:#333}
+.ward-chips{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.3rem}
+.ward-chip{background:#EEF3FF;color:var(--navy);border:1px solid #D0DBF0;border-radius:4px;padding:.12rem .4rem;font-size:11px;font-weight:600}
+.zone-name{font-weight:700;color:var(--navy)}
+
+.dept-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center;background:var(--white);padding:.65rem .75rem;border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.nav-btn{padding:.42rem 1rem;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid transparent;background:transparent;color:var(--text-muted);transition:all var(--t-fast);font-family:inherit}
+.nav-btn:hover{color:var(--navy);background:var(--ash)}
+.nav-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.nav-btn.back{color:var(--text-muted)}
+.nav-btn.back:hover{color:var(--navy)}
+.nav-spacer{flex:1}
+
+.alert{padding:.72rem 1rem;border-radius:var(--r-sm);font-size:13px;margin-bottom:1rem;border:1px solid;display:flex;align-items:flex-start;gap:.5rem}
+.alert-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.alert-danger{background:var(--red-light);color:#922B21;border-color:rgba(192,57,43,.2)}
+.alert-warn{background:#FFF8E7;color:#875C00;border-color:rgba(232,182,43,.3)}
+.alert-info{background:#EEF3FF;color:var(--navy);border-color:#D0DBF0}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(10,35,66,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);animation:fadeIn .2s ease}
+.modal{background:var(--white);border-radius:var(--r-xl);width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-xl);border:1px solid var(--border);animation:modalSlide .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalSlide{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,var(--ash),var(--white));position:sticky;top:0}
+.modal-title{font-size:1rem;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:.5rem}
+.modal-body{padding:1.25rem}
+.modal-footer{padding:.9rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.5rem;justify-content:flex-end;background:var(--ash)}
+
+.officers-toolbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.level-filter-bar{display:flex;gap:.3rem;flex-wrap:wrap}
+.lvl-filter-btn{padding:.28rem .6rem;border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text-muted);transition:all var(--t-fast);font-family:inherit}
+.lvl-filter-btn:hover{border-color:var(--navy);color:var(--navy)}
+.lvl-filter-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.search-wrap{position:relative}
+.search-wrap input{padding-left:2.1rem;min-width:200px}
+.search-icon{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:14px;pointer-events:none}
+
+.tree-node{margin-bottom:.3rem}
+.tree-row{display:flex;align-items:center;gap:.55rem;padding:.45rem .75rem;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--ash);flex-wrap:wrap;transition:all var(--t-fast)}
+.tree-row:hover{border-color:#C5D0E8;background:#F0F4FF}
+.tree-row.top{background:linear-gradient(135deg,#EEF3FF,#E8EEFF);border-color:#C0CEED;box-shadow:var(--shadow-sm)}
+
+.empty-state{text-align:center;padding:3.5rem 1rem;color:var(--text-muted)}
+.empty-state .es-icon{font-size:3.5rem;opacity:.2;margin-bottom:.75rem}
+.empty-state p{font-size:.9rem}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:4rem;color:var(--text-muted);gap:.75rem;font-size:14px}
+.spinner{width:22px;height:22px;border:2.5px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.section-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold-dark);margin-bottom:.4rem}
+
+/* Settings page */
+.settings-section{margin-bottom:1.5rem}
+.settings-section h3{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+
+@media print{.topbar,.dept-nav,.btn,.breadcrumb-bar,.no-print{display:none!important}body{background:var(--white)}.card{box-shadow:none;border:none}.report-table thead th{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media(max-width:600px){.main{padding:1rem .75rem}.topbar-inner{padding:.6rem 1rem}.sec-grid{grid-template-columns:1fr}.topbar-org{font-size:.9rem}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" style="display:none">
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-emblem">🏛️</div>
+      <div class="login-title" id="lp-title">Jhansi Nagar Nigam HMS</div>
+      <div class="login-sub" id="lp-sub">Smart Municipal Hierarchy Management System</div>
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <span class="login-badge">🔐 <span id="lp-badge">Admin Panel</span></span>
+      </div>
+      <div class="login-form-wrap">
+        <div class="form-group">
+          <label class="form-label" id="lp-un-label">Username</label>
+          <input class="form-control" id="lp-username" type="text" placeholder="admin" autocomplete="username">
+          <div class="field-error" id="lp-un-err"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="lp-pw-label">Password</label>
+          <div style="position:relative">
+            <input class="form-control" id="lp-password" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:2.5rem">
+            <button id="lp-toggle-pw" style="position:absolute;right:.65rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-light)" type="button">👁</button>
+          </div>
+          <div class="field-error" id="lp-pw-err"></div>
+        </div>
+        <div id="lp-err" style="margin-bottom:.75rem"></div>
+        <button class="btn btn-primary" id="lp-submit" style="width:100%;justify-content:center;padding:.65rem;font-size:15px" id="lp-btn">
+          <span id="lp-btn-text">Login to Admin Panel</span>
+        </button>
+        <div style="margin-top:1rem;text-align:center;font-size:11.5px;color:var(--text-light)">
+          <span id="lp-footer">Authorised personnel only · Jhansi Nagar Nigam</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP (shown after login) -->
+<div id="app" style="display:none">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-emblem">🏛️</div>
+      <div class="topbar-branding">
+        <div class="topbar-org" id="topbar-title">Jhansi Nagar Nigam</div>
+        <div class="topbar-subtitle-text" id="topbar-subtitle">Smart Municipal Hierarchy Management System</div>
+      </div>
+      <div class="topbar-right no-print">
+        <div class="admin-badge-bar">🛡️ <span id="admin-username-badge">Admin</span></div>
+        <div class="lang-switch">
+          <button id="lang-btn-hi" data-lang="hi">हिन्दी</button>
+          <button id="lang-btn-en" data-lang="en">English</button>
+        </div>
+        <div class="save-status" id="save-status">⬤ Ready</div>
+        <button class="logout-btn" id="logout-btn">⎋ Logout</button>
+      </div>
+    </div>
+    <div class="breadcrumb-bar no-print">
+      <div class="breadcrumb-inner" id="breadcrumb"></div>
+    </div>
+  </div>
+  <div class="main" id="main"></div>
+  <div class="gov-footer no-print">
+    Government of Uttar Pradesh &nbsp;|&nbsp; <span>Jhansi Nagar Nigam</span> &nbsp;|&nbsp; Smart Municipal HMS &nbsp;|&nbsp;
+    <span>🛡️ Admin Panel</span> &nbsp;|&nbsp; Confidential — Official Use Only
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="btn-icon" id="modal-close" style="color:var(--red)">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_BASE = '/api';
+
+// ============================================================
+// I18N
+// ============================================================
+const I18N = {
+  en: {
+    appTitle:'Jhansi Nagar Nigam',appSubtitle:'Smart Municipal Hierarchy Management System',
+    home:'Home',zoneMaster:'Zone Master',officerManagement:'Officer Management',viewReport:'View Report',
+    deptManagementHeading:'Department Management',deptManagementSub:'Select Zone Master to manage global zones, or a department to manage officers and reports',
+    zoneMasterCardTitle:'Zone Master',zoneMasterCardSub:'Global Zone / Ward Management',
+    addDepartment:'Add Department',addDepartmentSub:'Add a new department',
+    systemOverview:'System Overview',departments:'Departments',zones:'Zones',officers:'Officers',
+    officerManagementCard:'Officer Management',officerManagementCardSub:'Add & manage officers',
+    viewReportCard:'View Report',viewReportCardSub:'Auto-generated hierarchy report',
+    excelStyle:'Excel-style',backToHome:'← Back to Home',back:'← Back',
+    zoneMasterTitle:'Zone Master — Global Zone / Ward Registry',
+    addZone:'+ Add Zone',zoneNo:'#',zone:'Zone',wards:'Wards',l1Officers:'L1 Officers',actions:'Actions',
+    noZonesYet:'No zones yet. Add one to get started.',
+    zonesGlobalNote:'Zones are global and shared across all departments.',
+    officersFor:'Officers —',searchPlaceholder:'Search by name or mobile...',addOfficer:'+ Add Officer',
+    noOfficersFound:'No officers found.',sno:'S.No.',level:'Level',name:'Name',designation:'Designation',
+    mobile:'Mobile',zoneAssignedWardsReportsTo:'Zone / Assigned Wards / Reports To',
+    reportsTo:'↑ Reports To:',noZoneMatch:'No Zone Match',
+    hierarchyPreview:'📊 Hierarchy Preview (Top → Bottom)',noOfficersYet:'No officers yet.',
+    print:'🖨️ Print',exportPdf:'📄 Export PDF',exportExcel:'📊 Export Excel',
+    hierarchyReport:'Hierarchy Report',autoGenNote:'Auto-generated · One row per L1 officer · Columns generated dynamically from levels used',
+    wardNo:'Ward No',zoneNoCol:'Zone No',noL1Found:'No L1 officers found.',unassigned:'Unassigned',all:'All',
+    editZone:'Edit Zone',addZoneModalTitle:'Add Zone',zoneNameLabel:'Zone Name',zoneNamePlaceholder:'e.g. Zone 1',
+    zoneHindiLabel:'Zone Hindi Name',zoneHindiPlaceholder:'e.g. पिछोर',wardNumbersLabel:'Ward Numbers',
+    wardNumbersPlaceholder:'e.g. 13,19,20,30',wardNumbersHint:'Comma-separated ward numbers',
+    cancel:'Cancel',save:'Save',update:'Update',zoneNameWardsRequired:'Zone name and wards are required.',
+    wardsAlreadyAssigned:'Wards already assigned to another zone:',
+    editOfficer:'Edit Officer',addOfficerModalTitle:'Add Officer',officerLevelLabel:'Officer Level',
+    officerLevelOption:'Officer',officerLevelHint:'Maximum level allowed: L{cap} (Zonal Officer level).',
+    officerNameLabel:'Officer Name',officerNamePlaceholder:'Full name',mobileNumberLabel:'Mobile Number',
+    mobileNumberPlaceholder:'e.g. 9876543210',designationLabel:'Designation',designationPlaceholder:'e.g. Tax Inspector',
+    assignedWardsLabel:'Assigned Wards',assignedWardsHint:'Comma-separated ward numbers.',
+    reportsToLabel:'Reports To',officersOnly:'officers only',
+    noSupOfficersFound:'No L{level} officers found. Add L{level} officers first.',
+    holdCtrlHint:'Hold Ctrl / Cmd to select multiple supervisors',
+    officerNameRequired:'Officer name is required.',updateOfficer:'Update Officer',addOfficerBtn:'Add Officer',
+    addNewDepartmentTitle:'Add New Department',deptNameEnLabel:'Department Name (English)',
+    deptNameEnPlaceholder:'e.g. Sanitation Department',deptHindiLabel:'Hindi Name',deptHindiPlaceholder:'e.g. स्वच्छता विभाग',
+    deptIconLabel:'Icon (Emoji)',nameRequired:'Name is required.',addDepartmentBtn:'Add Department',
+    deleteZoneConfirm:'Delete this zone?',deleteZoneConfirmLinked:'officer(s) have wards referencing this zone. Delete anyway?',
+    deleteOfficerConfirm:'Delete this officer?',deleteDeptConfirm:'Delete this department and ALL its data?',
+    deptNotFound:'Department not found.',saving:'💾 Saving...',saved:'✅ Saved',ready:'⬤ Ready',loadingData:'Loading data...',
+    valMobileExact10:'Mobile number must contain exactly 10 digits.',
+    valNameLettersOnly:'Officer name can contain only letters and spaces.',valNameRequired:'Name cannot be empty.',
+    valWardsInvalid:'Ward numbers can contain only digits, separated by commas.',
+    valFixErrors:'Please fix the highlighted fields before saving.',valUnsafeText:'This field contains characters that are not allowed.',
+    isZonalOfficerLabel:'Is Zonal Officer?',yes:'Yes',no:'No',zonalOfficerNameLabel:'Zonal Officer Name',
+    zonalOfficerNamePlaceholder:'e.g. Gaurav Kumar',zonalOfficerMobileLabel:'Zonal Officer Mobile Number',
+    zonalOfficerMobilePlaceholder:'e.g. 9876543210',zonalOfficerCol:'Zonal Officer',
+    zonalLevelBadge:'Zonal Officer Level',zonalLevelNote:'This level is the final level for this department.',
+    treeZonalNote:'(Zone-specific — exact officer per zone shown in Report)',
+    errLevelInvalid:'Please enter a valid level number (1 or higher).',
+    errLevelExceedsCap:'Level cannot exceed this department\'s maximum level L{cap}.',
+    errZonalHigherExists:'Cannot mark as final level: officers already exist at a higher level.',
+    zonalOfficerNameRequired:'Zonal Officer name is required.',zonalOfficerLevelLabel:'Final (Zonal Officer) Level',
+    addZonalLevelBtn:'Set Zonal Officer Level',updateZonalLevelBtn:'Update Zonal Officer Level',
+    zonalAutoReportNote:'This officer automatically reports to the L{level} Zonal Officer level.',
+    settings:'Settings',changePassword:'Change Password',currentPassword:'Current Password',
+    newPassword:'New Password',confirmNewPassword:'Confirm New Password',updatePassword:'Update Password',
+    passwordMismatch:'Passwords do not match.',passwordTooShort:'Password must be at least 8 characters.',
+    passwordChanged:'Password changed successfully.',
+    loginTitle:'Login to Admin Panel',usernameLabel:'Username',passwordLabel:'Password',loginBtn:'Login to Admin Panel',
+    loginFooter:'Authorised personnel only · Jhansi Nagar Nigam',adminBadge:'Admin Panel',
+  },
+  hi: {
+    appTitle:'झांसी नगर निगम',appSubtitle:'स्मार्ट म्युनिसिपल हायरार्की मैनेजमेंट सिस्टम',
+    home:'होम',zoneMaster:'जोन मास्टर',officerManagement:'अधिकारी प्रबंधन',viewReport:'रिपोर्ट देखें',
+    deptManagementHeading:'विभाग प्रबंधन',deptManagementSub:'वैश्विक जोन प्रबंधित करने हेतु जोन मास्टर चुनें, या विभाग चुनें',
+    zoneMasterCardTitle:'जोन मास्टर',zoneMasterCardSub:'वैश्विक जोन / वार्ड प्रबंधन',
+    addDepartment:'विभाग जोड़ें',addDepartmentSub:'नया विभाग जोड़ें',
+    systemOverview:'सिस्टम अवलोकन',departments:'विभाग',zones:'जोन',officers:'अधिकारी',
+    officerManagementCard:'अधिकारी प्रबंधन',officerManagementCardSub:'अधिकारी जोड़ें और प्रबंधित करें',
+    viewReportCard:'रिपोर्ट देखें',viewReportCardSub:'स्वतः-जनित हायरार्की रिपोर्ट',
+    excelStyle:'एक्सेल-स्टाइल',backToHome:'← होम पर वापस जाएं',back:'← वापस',
+    zoneMasterTitle:'जोन मास्टर — वैश्विक जोन / वार्ड रजिस्ट्री',
+    addZone:'+ जोन जोड़ें',zoneNo:'#',zone:'जोन',wards:'वार्ड',l1Officers:'L1 अधिकारी',actions:'कार्रवाई',
+    noZonesYet:'अभी तक कोई जोन नहीं है।',zonesGlobalNote:'जोन वैश्विक हैं और सभी विभागों में साझा होते हैं।',
+    officersFor:'अधिकारी —',searchPlaceholder:'नाम या मोबाइल से खोजें...',addOfficer:'+ अधिकारी जोड़ें',
+    noOfficersFound:'कोई अधिकारी नहीं मिला।',sno:'क्र.सं.',level:'स्तर',name:'नाम',designation:'पदनाम',
+    mobile:'मोबाइल',zoneAssignedWardsReportsTo:'जोन / नियत वार्ड / रिपोर्ट्स टू',
+    reportsTo:'↑ रिपोर्ट करता है:',noZoneMatch:'कोई जोन मैच नहीं',
+    hierarchyPreview:'📊 हायरार्की पूर्वावलोकन (ऊपर → नीचे)',noOfficersYet:'अभी तक कोई अधिकारी नहीं है।',
+    print:'🖨️ प्रिंट',exportPdf:'📄 पीडीएफ एक्सपोर्ट',exportExcel:'📊 एक्सेल एक्सपोर्ट',
+    hierarchyReport:'हायरार्की रिपोर्ट',autoGenNote:'स्वतः-जनित · प्रति L1 अधिकारी एक पंक्ति',
+    wardNo:'वार्ड नंबर',zoneNoCol:'जोन नंबर',noL1Found:'कोई L1 अधिकारी नहीं मिला।',
+    unassigned:'असौंपा गया',all:'सभी',editZone:'जोन संपादित करें',addZoneModalTitle:'जोन जोड़ें',
+    zoneNameLabel:'जोन का नाम',zoneNamePlaceholder:'जैसे Zone 1',zoneHindiLabel:'जोन का हिन्दी नाम',
+    zoneHindiPlaceholder:'जैसे पिछोर',wardNumbersLabel:'वार्ड नंबर',wardNumbersPlaceholder:'जैसे 13,19,20,30',
+    wardNumbersHint:'अल्पविराम से अलग किए गए वार्ड नंबर',cancel:'रद्द करें',save:'सहेजें',update:'अपडेट करें',
+    zoneNameWardsRequired:'जोन का नाम और वार्ड आवश्यक हैं।',wardsAlreadyAssigned:'ये वार्ड पहले से ही दूसरे जोन में नियत हैं:',
+    editOfficer:'अधिकारी संपादित करें',addOfficerModalTitle:'अधिकारी जोड़ें',officerLevelLabel:'अधिकारी स्तर',
+    officerLevelOption:'अधिकारी',officerLevelHint:'अधिकतम अनुमत स्तर: L{cap} (जोनल अधिकारी स्तर)।',
+    officerNameLabel:'अधिकारी का नाम',officerNamePlaceholder:'पूरा नाम',mobileNumberLabel:'मोबाइल नंबर',
+    mobileNumberPlaceholder:'जैसे 9876543210',designationLabel:'पदनाम',designationPlaceholder:'जैसे टैक्स इंस्पेक्टर',
+    assignedWardsLabel:'नियत वार्ड',assignedWardsHint:'अल्पविराम से अलग किए गए वार्ड नंबर।',
+    reportsToLabel:'रिपोर्ट्स टू',officersOnly:'अधिकारी ही',
+    noSupOfficersFound:'कोई L{level} अधिकारी नहीं मिला। पहले L{level} अधिकारी जोड़ें।',
+    holdCtrlHint:'कई सुपरवाइज़र चुनने हेतु Ctrl / Cmd दबाए रखें',
+    officerNameRequired:'अधिकारी का नाम आवश्यक है।',updateOfficer:'अधिकारी अपडेट करें',addOfficerBtn:'अधिकारी जोड़ें',
+    addNewDepartmentTitle:'नया विभाग जोड़ें',deptNameEnLabel:'विभाग का नाम (अंग्रेज़ी)',
+    deptNameEnPlaceholder:'जैसे Sanitation Department',deptHindiLabel:'हिन्दी नाम',deptHindiPlaceholder:'जैसे स्वच्छता विभाग',
+    deptIconLabel:'आइकन (इमोजी)',nameRequired:'नाम आवश्यक है।',addDepartmentBtn:'विभाग जोड़ें',
+    deleteZoneConfirm:'इस जोन को हटाएं?',deleteZoneConfirmLinked:'अधिकारी(यों) के वार्ड इस जोन को संदर्भित करते हैं। फिर भी हटाएं?',
+    deleteOfficerConfirm:'इस अधिकारी को हटाएं?',deleteDeptConfirm:'इस विभाग और इसके सभी डेटा को हटाएं?',
+    deptNotFound:'विभाग नहीं मिला।',saving:'💾 सहेजा जा रहा है...',saved:'✅ सहेजा गया',ready:'⬤ तैयार',loadingData:'डेटा लोड हो रहा है...',
+    valMobileExact10:'मोबाइल नंबर में ठीक 10 अंक होने चाहिए।',valNameLettersOnly:'नाम में केवल अक्षर और स्पेस ही हो सकते हैं।',
+    valNameRequired:'नाम खाली नहीं हो सकता।',valWardsInvalid:'वार्ड नंबर में केवल अंक हों।',
+    valFixErrors:'सहेजने से पहले हाइलाइट की गई फ़ील्ड को ठीक करें।',valUnsafeText:'इस फ़ील्ड में अमान्य वर्ण हैं।',
+    isZonalOfficerLabel:'क्या जोनल अधिकारी है?',yes:'हाँ',no:'नहीं',zonalOfficerNameLabel:'जोनल अधिकारी का नाम',
+    zonalOfficerNamePlaceholder:'जैसे Gaurav Kumar',zonalOfficerMobileLabel:'जोनल अधिकारी मोबाइल नंबर',
+    zonalOfficerMobilePlaceholder:'जैसे 9876543210',zonalOfficerCol:'जोनल अधिकारी',
+    zonalLevelBadge:'जोनल अधिकारी स्तर',zonalLevelNote:'यह इस विभाग का अंतिम स्तर है।',
+    treeZonalNote:'(जोन-विशिष्ट — रिपोर्ट में देखें)',errLevelInvalid:'कृपया एक मान्य स्तर संख्या दर्ज करें।',
+    errLevelExceedsCap:'स्तर अधिकतम L{cap} से अधिक नहीं हो सकता।',
+    errZonalHigherExists:'इससे ऊँचे स्तर पर अधिकारी मौजूद हैं।',zonalOfficerNameRequired:'जोनल अधिकारी का नाम आवश्यक है।',
+    zonalOfficerLevelLabel:'अंतिम (जोनल अधिकारी) स्तर',addZonalLevelBtn:'जोनल अधिकारी स्तर सेट करें',
+    updateZonalLevelBtn:'जोनल अधिकारी स्तर अपडेट करें',zonalAutoReportNote:'यह अधिकारी स्वतः L{level} जोनल अधिकारी स्तर को रिपोर्ट करता है।',
+    settings:'सेटिंग्स',changePassword:'पासवर्ड बदलें',currentPassword:'वर्तमान पासवर्ड',
+    newPassword:'नया पासवर्ड',confirmNewPassword:'नया पासवर्ड पुष्टि करें',updatePassword:'पासवर्ड अपडेट करें',
+    passwordMismatch:'पासवर्ड मेल नहीं खाते।',passwordTooShort:'पासवर्ड कम से कम 8 अक्षर का होना चाहिए।',
+    passwordChanged:'पासवर्ड सफलतापूर्वक बदला गया।',
+    loginTitle:'एडमिन पैनल में लॉग इन करें',usernameLabel:'उपयोगकर्ता नाम',passwordLabel:'पासवर्ड',
+    loginBtn:'एडमिन पैनल में लॉग इन करें',loginFooter:'केवल अधिकृत कर्मी · झांसी नगर निगम',adminBadge:'एडमिन पैनल',
+  }
+};
+let CURRENT_LANG='hi';
+function t(key,vars){let str=(I18N[CURRENT_LANG]&&I18N[CURRENT_LANG][key])||(I18N.en[key])||key;if(vars){Object.keys(vars).forEach(function(k){str=str.split('{'+k+'}').join(vars[k]);});}return str;}
+function getSavedLang(){try{return localStorage.getItem('hms_lang')||'hi';}catch(e){return'hi';}}
+function setSavedLang(lang){try{localStorage.setItem('hms_lang',lang);}catch(e){}}
+
+// ============================================================
+// AUTH
+// ============================================================
+let JWT_TOKEN=null;
+function getToken(){return JWT_TOKEN||(JWT_TOKEN=sessionStorage.getItem('hms_admin_token'));}
+function setToken(t){JWT_TOKEN=t;sessionStorage.setItem('hms_admin_token',t);}
+function clearToken(){JWT_TOKEN=null;sessionStorage.removeItem('hms_admin_token');}
+function authHeader(){return{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json'};}
+async function apiGet(path){const r=await fetch(API_BASE+path,{headers:authHeader()});if(r.status===401){doLogout();return null;}return r.json();}
+async function apiPost(path,body){const r=await fetch(API_BASE+path,{method:'POST',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return r.json();}
+async function apiPut(path,body){const r=await fetch(API_BASE+path,{method:'PUT',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return r.json();}
+async function apiDel(path){const r=await fetch(API_BASE+path,{method:'DELETE',headers:authHeader()});if(r.status===401){doLogout();return null;}return r.json();}
+
+// ============================================================
+// VALIDATION
+// ============================================================
+const Validate={
+  NAME_ALLOWED_RE:/^[A-Za-z\u0900-\u097F .]*$/,NAME_HAS_LETTER_RE:/[A-Za-z\u0900-\u097F]/,HTML_TAG_RE:/<[^>]*>/g,
+  sanitizeText(val){if(val===null||val===undefined)return'';let s=String(val);s=s.replace(this.HTML_TAG_RE,'');s=s.trim();return s;},
+  isValidName(val){const s=(val||'').trim();if(!s)return false;if(!this.NAME_ALLOWED_RE.test(s))return false;if(!this.NAME_HAS_LETTER_RE.test(s))return false;return true;},
+  isValidMobile(val){const s=(val||'').trim();if(!s)return true;return/^[0-9]{10}$/.test(s);},
+  isValidWardsRaw(val){const s=(val||'').trim();if(!s)return true;const parts=s.split(',').map(function(x){return x.trim();}).filter(Boolean);return parts.every(function(p){return/^[0-9]+$/.test(p);});}
+};
+function constrainMobileInput(el){if(!el)return;el.setAttribute('maxlength','10');el.setAttribute('inputmode','numeric');el.addEventListener('input',function(){const c=this.value.replace(/[^0-9]/g,'').slice(0,10);if(c!==this.value)this.value=c;});}
+function constrainNameInput(el){if(!el)return;el.addEventListener('input',function(){const c=this.value.replace(/[^A-Za-z\u0900-\u097F .]/g,'');if(c!==this.value)this.value=c;});}
+function setFieldError(inputEl,errElId,message){if(inputEl)inputEl.classList.add('field-invalid');const errEl=document.getElementById(errElId);if(errEl){errEl.textContent=message;errEl.classList.add('show');}}
+function clearFieldError(inputEl,errElId){if(inputEl)inputEl.classList.remove('field-invalid');const errEl=document.getElementById(errElId);if(errEl){errEl.textContent='';errEl.classList.remove('show');}}
+
+// ============================================================
+// STATE
+// ============================================================
+let STATE={depts:[],zones:[],offs:[],loaded:false};
+let VIEW={page:'home',deptId:null};
+let _search='';let _levelFilter='all';
+
+const h=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const lvlCls=l=>{const n=parseInt(l)||1;const idx=((n-1)%8)+1;return'l'+idx;};
+const supIds=o=>Array.isArray(o.supIds)?o.supIds:(o.supId?[o.supId]:[]);
+const getDept=id=>STATE.depts.find(d=>d._id===id||d.id===id);
+const getOffs=deptId=>STATE.offs.filter(o=>o.deptId===deptId);
+const getOffById=id=>STATE.offs.find(o=>(o._id||o.id)===id);
+const getZoneById=id=>STATE.zones.find(z=>(z._id||z.id)===id);
+const offId=o=>o._id||o.id;
+const deptId2=d=>d._id||d.id;
+
+function findZoneByWards(wards){if(!wards||!wards.length)return null;let best=null,bestScore=0;STATE.zones.forEach(function(z){const score=wards.filter(function(w){return z.wards.includes(w);}).length;if(score>bestScore){bestScore=score;best=z;}});return bestScore>0?best:null;}
+function getDeptMaxLevel(deptId){const offs=getOffs(deptId);if(!offs.length)return 1;let max=1;offs.forEach(function(o){if(o.level>max)max=o.level;});return max;}
+function getDeptZonalCapLevel(deptId,excludeId){let cap=null;getOffs(deptId).forEach(function(o){if(o.isZonal&&offId(o)!==excludeId){if(cap===null||o.level<cap)cap=o.level;}});return cap;}
+function getDeptZonalRecord(deptId){return getOffs(deptId).find(function(o){return o.isZonal;})||null;}
+
+// ============================================================
+// API DATA LOADING
+// ============================================================
+async function loadAllData(){
+  setStatus(t('loadingData'),'');
+  const [depts,zones,offs]=await Promise.all([
+    fetch(API_BASE+'/departments',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
+    fetch(API_BASE+'/zones',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
+    fetch(API_BASE+'/officers',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
+  ]);
+  STATE.depts=Array.isArray(depts)?depts:[];
+  STATE.zones=Array.isArray(zones)?zones:[];
+  STATE.offs=Array.isArray(offs)?offs.map(function(o){return Object.assign({isZonal:false},o,{isZonal:!!o.isZonal});}):[]; 
+  STATE.loaded=true;
+  setStatus(t('ready'),'');
+}
+
+// ============================================================
+// STATUS / SAVE
+// ============================================================
+function setStatus(s,cls){const el=document.getElementById('save-status');if(el){el.textContent=s;el.className='save-status'+(cls?' '+cls:'');}}
+function showSaved(){setStatus(t('saved'),'saved');setTimeout(()=>setStatus(t('ready'),''),1500);}
+
+// ============================================================
+// RENDER
+// ============================================================
+function go(page,dId){VIEW={page,deptId:dId||null};_search='';_levelFilter='all';render();}
+function render(){if(!STATE.loaded)return;setBreadcrumb();const el=document.getElementById('main');const pages={home:pgHome,dept:pgDept,zonemaster:pgZoneMaster,officers:pgOfficers,report:pgReport,settings:pgSettings};el.innerHTML=(pages[VIEW.page]||pgHome)();bind();}
+function setBreadcrumb(){const b=document.getElementById('breadcrumb');let html='<a onclick="go(\'home\')">'+t('home')+'</a>';if(VIEW.page==='zonemaster'){html+='<span class="sep">›</span><span>'+t('zoneMaster')+'</span>';b.innerHTML=html;return;}if(VIEW.page==='settings'){html+='<span class="sep">›</span><span>'+t('settings')+'</span>';b.innerHTML=html;return;}if(VIEW.deptId){const d=getDept(VIEW.deptId);if(d){html+='<span class="sep">›</span>';if(VIEW.page==='dept')html+='<span>'+h(d.name)+'</span>';else html+='<a onclick="go(\'dept\',\''+deptId2(d)+'\')">'+h(d.name)+'</a>';}}const labels={officers:t('officerManagement'),report:t('viewReport')};if(labels[VIEW.page])html+='<span class="sep">›</span><span>'+labels[VIEW.page]+'</span>';b.innerHTML=html;}
+
+// ============================================================
+// HOME PAGE
+// ============================================================
+function pgHome(){
+  let cards='<div class="dept-card zone-master-card" id="btn-zone-master"><div class="dept-icon">🗺️</div><div class="dept-name">'+t('zoneMasterCardTitle')+'</div><div class="dept-hindi">'+t('zoneMasterCardSub')+'</div></div>';
+  STATE.depts.forEach(function(d){cards+='<div class="dept-card" data-goto-dept="'+deptId2(d)+'"><button class="dept-del-btn" data-del-dept="'+deptId2(d)+'">✕</button><div class="dept-icon">'+d.icon+'</div><div class="dept-name">'+h(d.name)+'</div><div class="dept-hindi">'+h(d.hindi||'')+'</div></div>';});
+  cards+='<div class="dept-card add-dept-card" id="btn-add-dept"><div class="dept-icon">+</div><div class="dept-name">'+t('addDepartment')+'</div><div class="dept-hindi">'+t('addDepartmentSub')+'</div></div>';
+  return '<div class="page-header"><div class="section-eyebrow">'+t('appTitle')+' &nbsp;·&nbsp; '+new Date().toLocaleDateString(CURRENT_LANG==='hi'?'hi-IN':'en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</div><h1>'+t('deptManagementHeading')+'</h1><p>'+t('deptManagementSub')+'</p></div>'
+    +'<div class="dept-grid">'+cards+'</div>'
+    +'<div class="card" style="margin-top:1.75rem"><div class="card-header"><div><div class="card-title">📊 '+t('systemOverview')+'</div></div></div><div class="card-body"><div class="stats-grid">'+statBox('🏢',STATE.depts.length,t('departments'))+statBox('🗺️',STATE.zones.length,t('zones'))+statBox('👤',STATE.offs.length,t('officers'))+'</div></div></div>';
+}
+function statBox(icon,val,label){return'<div class="stat-box"><div class="stat-icon">'+icon+'</div><div class="stat-value">'+val+'</div><div class="stat-label">'+label+'</div></div>';}
+
+// ============================================================
+// DEPT / OFFICER / ZONE / REPORT pages (identical logic to original)
+// ============================================================
+function pgDept(){const d=getDept(VIEW.deptId);if(!d)return'<div class="alert alert-danger">'+t('deptNotFound')+'</div>';const secs=[{title:t('officerManagementCard'),sub:t('officerManagementCardSub'),icon:'👤',page:'officers',badge:getOffs(deptId2(d)).length+' '+t('officers'),badgeCls:'badge-primary'},{title:t('viewReportCard'),sub:t('viewReportCardSub'),icon:'📋',page:'report',badge:t('excelStyle'),badgeCls:'badge-gold'}];let secHtml='';secs.forEach(function(s){secHtml+='<div class="sec-card" data-goto="'+s.page+'"><div class="sec-card-body"><div class="sec-card-icon">'+s.icon+'</div><div class="sec-card-title">'+s.title+'</div><div class="sec-card-sub">'+s.sub+'</div><span class="badge '+s.badgeCls+'">'+s.badge+'</span></div></div>';});return'<div class="page-header" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><div style="font-size:3rem;line-height:1">'+d.icon+'</div><div><h1>'+h(d.name)+'</h1><p>'+h(d.hindi||'')+'</p></div></div><div class="sec-grid">'+secHtml+'</div>';}
+
+function pgZoneMaster(){
+  const zones=STATE.zones;let body='';
+  if(!zones.length){body='<div class="empty-state"><div class="es-icon">🗺️</div><p>'+t('noZonesYet')+'</p></div>';}
+  else{let trs='';zones.forEach(function(z,i){const l1Count=STATE.offs.filter(function(o){return o.level===1&&(o.wards||[]).some(function(w){return z.wards.includes(w);});}).length;const zId=z._id||z.id;trs+='<tr><td style="text-align:center;color:var(--text-muted);font-weight:600">'+(i+1)+'</td><td><div class="zone-name">'+h(z.zone)+'</div>'+(z.zoneHindi?'<div style="font-size:12px;color:var(--text-muted)">('+h(z.zoneHindi)+')</div>':'')+'</td><td><div class="ward-chips">'+z.wards.map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div></td><td>'+(z.zonalOfficerName?'<div style="font-weight:700;color:var(--navy)">'+h(z.zonalOfficerName)+'</div>'+(z.zonalOfficerMobile?'<div style="font-size:12px;color:var(--text-muted)">'+h(z.zonalOfficerMobile)+'</div>':''):'<span style="color:var(--text-light)">—</span>')+'</td><td><span class="badge badge-primary">'+l1Count+'</span></td><td style="white-space:nowrap"><button class="btn-icon" data-edit-zone="'+zId+'">✏️</button> <button class="btn-icon danger" data-del-zone="'+zId+'">🗑️</button></td></tr>';});body='<div class="table-wrap"><table><thead><tr><th>#</th><th>'+t('zone')+'</th><th>'+t('wards')+'</th><th>'+t('zonalOfficerCol')+'</th><th>'+t('l1Officers')+'</th><th>'+t('actions')+'</th></tr></thead><tbody>'+trs+'</tbody></table></div>';}
+  return'<div class="dept-nav no-print"><button class="nav-btn back" onclick="go(\'home\')">'+t('backToHome')+'</button></div><div class="card"><div class="card-header" style="justify-content:space-between"><div><div class="card-title">'+t('zoneMasterTitle')+'</div></div><button class="btn btn-primary btn-sm" id="btn-add-zone">'+t('addZone')+'</button></div><div class="card-body" style="padding:0">'+body+'</div></div><div class="alert alert-info no-print" style="margin-top:1rem"><span class="alert-icon">ℹ️</span>'+t('zonesGlobalNote')+'</div>';
+}
+
+function getAvailableLevels(deptId){const offs=getOffs(deptId),levels=[];offs.forEach(function(o){if(!levels.includes(o.level))levels.push(o.level);});levels.sort(function(a,b){return a-b;});return levels;}
+function filterOfficers(offs){const searchText=_search.toLowerCase();return offs.filter(function(o){if(_levelFilter!=='all'&&o.level!==_levelFilter)return false;if(!_search)return true;return(o.name||'').toLowerCase().includes(searchText)||(o.mobile||'').includes(_search);});}
+function buildLevelFilterBarHtml(deptId){const levels=getAvailableLevels(deptId);let html='<div class="level-filter-bar" id="level-filter-bar"><button class="lvl-filter-btn'+(_levelFilter==='all'?' active':'')+'" data-lvl-filter="all">'+t('all')+'</button>';levels.forEach(function(l){html+='<button class="lvl-filter-btn'+(_levelFilter===l?' active':'')+'" data-lvl-filter="'+l+'">L'+l+'</button>';});return html+'</div>';}
+
+function buildOfficersTableHtml(filtered){
+  if(!filtered.length)return'<div class="empty-state"><div class="es-icon">👤</div><p>'+t('noOfficersFound')+'</p></div>';
+  let trs='';filtered.forEach(function(o,i){const sups=supIds(o).map(getOffById).filter(Boolean);let zoneCell='';if(o.level===1){const zone=findZoneByWards(o.wards);zoneCell=zone?'<span class="badge badge-primary">'+h(zone.zone)+'</span>':'<span class="badge badge-warn">'+t('noZoneMatch')+'</span>';zoneCell+='<div class="ward-chips">'+(o.wards||[]).map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div>';}const isZonal=!!o.isZonal;let supCell='';if(isZonal){supCell='<div style="font-size:11px;color:var(--text-muted)">'+t('treeZonalNote')+'</div>';}else if(sups.length){supCell='<div style="font-size:11.5px;color:var(--text-muted)">'+t('reportsTo')+' '+sups.map(function(s){return'<strong>'+h(s.name)+'</strong>';}).join(', ')+'</div>';}const zonalBadge=isZonal?' <span class="badge badge-gold" style="font-size:10px">🏁 '+t('zonalLevelBadge')+'</span>':'';trs+='<tr><td style="text-align:center;color:var(--text-muted)">'+(i+1)+'</td><td><span class="lbadge '+lvlCls(o.level)+'">L'+o.level+'</span>'+zonalBadge+'</td><td>'+(isZonal?'<em style="color:var(--text-muted)">'+t('zonalLevelBadge')+'</em>':'<strong>'+h(o.name)+'</strong>')+'</td><td style="font-size:12.5px;color:var(--text-muted)">'+(isZonal?'':h(o.desig||''))+'</td><td style="font-family:monospace;font-size:13px">'+(isZonal?'':h(o.mobile||''))+'</td><td>'+zoneCell+supCell+'</td><td style="white-space:nowrap"><button class="btn-icon" data-edit-off="'+offId(o)+'">✏️</button> <button class="btn-icon danger" data-del-off="'+offId(o)+'">🗑️</button></td></tr>';});
+  return'<div class="table-wrap"><table><thead><tr><th>'+t('sno')+'</th><th>'+t('level')+'</th><th>'+t('name')+'</th><th>'+t('designation')+'</th><th>'+t('mobile')+'</th><th>'+t('zoneAssignedWardsReportsTo')+'</th><th>'+t('actions')+'</th></tr></thead><tbody>'+trs+'</tbody></table></div>';
+}
+
+function pgOfficers(){const d=getDept(VIEW.deptId);if(!d)return'';const offs=getOffs(deptId2(d)),filtered=filterOfficers(offs);return deptNav('officers')+'<div class="card"><div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:.6rem"><div class="card-title">'+t('officersFor')+' '+h(d.name)+'</div><div class="officers-toolbar">'+buildLevelFilterBarHtml(deptId2(d))+'<div class="search-wrap"><span class="search-icon">🔍</span><input class="form-control" id="off-search" placeholder="'+h(t('searchPlaceholder'))+'" value="'+h(_search)+'" style="padding-left:2.1rem"></div><button class="btn btn-primary btn-sm" data-add-off="'+deptId2(d)+'">'+t('addOfficer')+'</button></div></div><div class="card-body" style="padding:0" id="officers-card-body">'+buildOfficersTableHtml(filtered)+'</div></div><div class="card no-print" style="margin-top:1.25rem"><div class="card-header"><div class="card-title">'+t('hierarchyPreview')+'</div></div><div class="card-body">'+buildTreeHTML(deptId2(d))+'</div></div>';}
+
+function buildTreeHTML(deptId){const offs=getOffs(deptId);if(!offs.length)return'<div style="color:var(--text-muted)">'+t('noOfficersYet')+'</div>';const zonalRec=getDeptZonalRecord(deptId);const maxLevel=getDeptMaxLevel(deptId);const nonZonalOffs=offs.filter(function(o){return!o.isZonal;});function rowHtml(officer,depth,zone){const isZonalNode=!!officer.isZonal;const displayName=isZonalNode?t('zonalLevelBadge'):officer.name;return'<div class="tree-row'+(depth===0?' top':'')+'"><span class="lbadge '+lvlCls(officer.level)+'">L'+officer.level+'</span><span style="font-weight:600'+(isZonalNode?';font-style:italic;color:var(--text-muted)':'')+'">'+h(displayName)+'</span>'+(!isZonalNode&&officer.mobile?'<span style="color:var(--text-muted);font-size:12px">'+h(officer.mobile)+'</span>':'')+(zone&&officer.level===1?'<span class="badge badge-primary" style="font-size:11px">'+h(zone.zone)+'</span>':'')+(officer.level===1&&officer.wards&&officer.wards.length?'<span style="font-size:11px;color:var(--text-muted)">'+t('wards')+': '+officer.wards.join(',')+'</span>':'')+(isZonalNode?' <span class="badge badge-gold" style="font-size:10px">🏁</span><span style="font-size:11px;color:var(--text-muted)">'+t('treeZonalNote')+'</span>':'')+'</div>';}const l1s=nonZonalOffs.filter(function(o){return o.level===1;});let html='';l1s.forEach(function(l1){const zone=findZoneByWards(l1.wards);let html2='<div class="tree-node">'+rowHtml(l1,0,zone);let currentLevelOffs=[l1],depth=0;for(let lvl=2;lvl<=maxLevel;lvl++){depth++;let nextOffs;if(zonalRec&&lvl===zonalRec.level&&currentLevelOffs.length){nextOffs=[zonalRec];}else{const nextIds=[];currentLevelOffs.forEach(function(o){supIds(o).forEach(function(sid){if(!nextIds.includes(sid))nextIds.push(sid);});});nextOffs=nonZonalOffs.filter(function(o){return nextIds.includes(offId(o));});}nextOffs.forEach(function(o){html2+='<div class="tree-node" style="margin-left:'+(depth*28)+'px">'+rowHtml(o,depth,zone)+'</div>';});currentLevelOffs=nextOffs;if(!nextOffs.length)break;}html2+='</div>';html+=html2;});return html||'<div style="color:var(--text-muted)">'+t('noOfficersYet')+'</div>';}
+
+function renderOfficerCell(officerList,zone){if(!officerList||!officerList.length)return'<td style="color:var(--text-light);text-align:center;font-size:18px">—</td>';const lines=officerList.map(function(o){let dispName=o.name,dispMobile=o.mobile,dispDesig=o.desig;if(o.isZonal){if(zone&&zone.zonalOfficerName){dispName=zone.zonalOfficerName;dispMobile=zone.zonalOfficerMobile||'';}else{dispName=t('unassigned');dispMobile='';}dispDesig='';}return'<div style="font-weight:600;font-size:13px">'+h(dispName)+'</div>'+(dispDesig?'<div style="font-size:11px;color:var(--text-muted)">'+h(dispDesig)+'</div>':'')+(dispMobile?'<div style="font-size:11px;color:var(--text-muted);font-family:monospace">'+h(dispMobile)+'</div>':'');});return'<td>'+lines.join('<div style="height:4px;border-top:1px solid rgba(0,0,0,.05);margin:4px 0"></div>')+'</td>';}
+
+function buildReportRows(deptId){const offs=getOffs(deptId),maxLevel=getDeptMaxLevel(deptId),l1s=offs.filter(function(o){return o.level===1;}),rows=[];const zonalRec=getDeptZonalRecord(deptId);l1s.forEach(function(l1,index){const zone=findZoneByWards(l1.wards);const chains=[];let currentLevelOffs=[l1];for(let lvl=2;lvl<=maxLevel;lvl++){let nextOffs;if(zonalRec&&lvl===zonalRec.level&&currentLevelOffs.length){nextOffs=[zonalRec];}else{const nextIds=[];currentLevelOffs.forEach(function(o){supIds(o).forEach(function(sid){if(!nextIds.includes(sid))nextIds.push(sid);});});nextOffs=offs.filter(function(o){return nextIds.includes(offId(o));});}chains.push(nextOffs);currentLevelOffs=nextOffs;}rows.push({no:index+1,zone,wards:l1.wards||[],l1,chains,maxLevel});});return rows;}
+
+function pgReport(){const d=getDept(VIEW.deptId);if(!d)return'';const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));let hdrs='<th>L1</th>';for(let i=2;i<=maxLevel;i++)hdrs+='<th>L'+i+'</th>';let trs='';if(!rows.length){trs='<tr><td colspan="'+(3+maxLevel)+'" style="text-align:center;padding:2.5rem;color:var(--text-muted)">'+t('noL1Found')+'</td></tr>';}else{rows.forEach(function(r){const zoneCellHtml=r.zone?'<div class="zone-name">'+h(r.zone.zone)+'</div>'+(r.zone.zoneHindi?'<div style="font-size:11.5px;color:var(--text-muted)">('+h(r.zone.zoneHindi)+')</div>':''):'<div style="color:var(--gold-dark);font-size:12px">'+t('unassigned')+'</div>';const l1Cell='<td><div style="font-weight:700;font-size:13px">'+h(r.l1.name)+'</div>'+(r.l1.desig?'<div style="font-size:11px;color:var(--text-muted)">'+h(r.l1.desig)+'</div>':'')+(r.l1.mobile?'<div style="font-size:11px;font-family:monospace;color:var(--navy)">'+h(r.l1.mobile)+'</div>':'')+'</td>';let levelCells='';r.chains.forEach(function(oList){levelCells+=renderOfficerCell(oList,r.zone);});trs+='<tr><td style="text-align:center;color:var(--text-muted);font-weight:700">'+r.no+'</td><td>'+zoneCellHtml+'</td><td><div class="ward-chips">'+r.wards.map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div></td>'+l1Cell+levelCells+'</tr>';});}
+  return deptNav('report')+'<div class="card" id="report-card"><div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div><div class="card-title">'+h(d.name)+' — '+t('hierarchyReport')+'</div><div class="card-subtitle">'+t('autoGenNote')+'</div></div><div style="font-size:12px;color:var(--text-muted);font-weight:600">📅 '+new Date().toLocaleDateString('en-IN')+'</div></div><div class="card-body" style="padding:0"><div class="table-wrap"><table class="report-table"><thead><tr><th style="width:50px">'+t('sno')+'</th><th>'+t('zoneNoCol')+'</th><th>'+t('wardNo')+'</th>'+hdrs+'</tr></thead><tbody>'+trs+'</tbody></table></div></div></div>';
+}
+
+function pgSettings(){
+  return'<div class="page-header"><h1>⚙️ '+t('settings')+'</h1></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">🔐 '+t('changePassword')+'</div></div><div class="card-body" style="max-width:400px">'
+    +'<div class="form-group"><label class="form-label">'+t('currentPassword')+'</label><input class="form-control" type="password" id="cp-current" placeholder="••••••••"></div>'
+    +'<div class="form-group"><label class="form-label">'+t('newPassword')+'</label><input class="form-control" type="password" id="cp-new" placeholder="••••••••"><div class="form-hint">Minimum 8 characters</div></div>'
+    +'<div class="form-group"><label class="form-label">'+t('confirmNewPassword')+'</label><input class="form-control" type="password" id="cp-confirm" placeholder="••••••••"></div>'
+    +'<div id="cp-err"></div>'
+    +'<button class="btn btn-primary" id="cp-submit">'+t('updatePassword')+'</button>'
+    +'</div></div>';
+}
+
+function deptNav(active){let html='<div class="dept-nav no-print"><button class="nav-btn back" data-goto="dept">'+t('back')+'</button><button class="nav-btn'+(active==='officers'?' active':'')+'" data-goto="officers">'+t('officerManagement')+'</button><button class="nav-btn'+(active==='report'?' active':'')+'" data-goto="report">'+t('viewReport')+'</button>';if(active==='report'){html+='<div class="nav-spacer"></div><button class="nav-btn" onclick="window.print()">'+t('print')+'</button><button class="nav-btn" data-export-pdf>'+t('exportPdf')+'</button><button class="nav-btn" data-export-excel>'+t('exportExcel')+'</button>';}return html+'</div>';}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showModal(title,bodyHtml,buttons){document.getElementById('modal-title').innerHTML=title;document.getElementById('modal-body').innerHTML=bodyHtml;let foot='';buttons.forEach(function(b,i){foot+='<button class="btn '+b.cls+'" id="mfb'+i+'">'+b.label+'</button>';});document.getElementById('modal-footer').innerHTML=foot;buttons.forEach(function(b,i){document.getElementById('mfb'+i).addEventListener('click',b.fn);});document.getElementById('modal').style.display='flex';}
+function closeModal(){document.getElementById('modal').style.display='none';}
+document.getElementById('modal-close').addEventListener('click',closeModal);
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ============================================================
+// ZONE MODALS
+// ============================================================
+function openAddZone(){openZoneModal(null);}
+function openEditZone(id){openZoneModal(getZoneById(id));}
+function openZoneModal(existing){
+  showModal((existing?'✏️ '+t('editZone'):'🗺️ '+t('addZoneModalTitle')),
+    '<div class="form-row"><div class="form-group"><label class="form-label">'+t('zoneNameLabel')+'</label><input class="form-control" id="z-name" value="'+(existing?h(existing.zone):'')+'" placeholder="'+h(t('zoneNamePlaceholder'))+'"><div class="field-error" id="z-name-err"></div></div><div class="form-group"><label class="form-label">'+t('zoneHindiLabel')+'</label><input class="form-control" id="z-hindi" value="'+(existing?h(existing.zoneHindi||''):'')+'" placeholder="'+h(t('zoneHindiPlaceholder'))+'"></div></div>'
+    +'<div class="form-group"><label class="form-label">'+t('wardNumbersLabel')+'</label><input class="form-control" id="z-wards" value="'+(existing?existing.wards.join(','):'')+'" placeholder="'+h(t('wardNumbersPlaceholder'))+'"><div class="form-hint">'+t('wardNumbersHint')+'</div><div class="field-error" id="z-wards-err"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">'+t('zonalOfficerNameLabel')+'</label><input class="form-control" id="z-zoff-name" value="'+(existing?h(existing.zonalOfficerName||''):'')+'" placeholder="'+h(t('zonalOfficerNamePlaceholder'))+'"><div class="field-error" id="z-zoff-name-err"></div></div><div class="form-group"><label class="form-label">'+t('zonalOfficerMobileLabel')+'</label><input class="form-control" id="z-zoff-mobile" value="'+(existing?h(existing.zonalOfficerMobile||''):'')+'" placeholder="'+h(t('zonalOfficerMobilePlaceholder'))+'" maxlength="10" inputmode="numeric"><div class="field-error" id="z-zoff-mobile-err"></div></div></div>'
+    +'<div id="z-err"></div>',
+    [{label:t('cancel'),cls:'btn-secondary',fn:closeModal},{label:existing?t('update'):t('save'),cls:'btn-primary',fn:function(){saveZone(existing?(existing._id||existing.id):null);}}]
+  );
+  constrainNameInput(document.getElementById('z-zoff-name'));constrainMobileInput(document.getElementById('z-zoff-mobile'));
+}
+async function saveZone(editId){
+  const name=document.getElementById('z-name').value.trim();const hindi=document.getElementById('z-hindi').value.trim();const wardsRaw=document.getElementById('z-wards').value.trim();const zoffNameEl=document.getElementById('z-zoff-name'),zoffMobileEl=document.getElementById('z-zoff-mobile');const zoffName=Validate.sanitizeText(zoffNameEl.value);const zoffMobile=Validate.sanitizeText(zoffMobileEl.value);const errEl=document.getElementById('z-err');errEl.innerHTML='';clearFieldError(zoffNameEl,'z-zoff-name-err');clearFieldError(zoffMobileEl,'z-zoff-mobile-err');
+  if(!name||!wardsRaw){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('zoneNameWardsRequired')+'</div>';return;}
+  let hasError=false;if(!zoffName){setFieldError(zoffNameEl,'z-zoff-name-err',t('zonalOfficerNameRequired'));hasError=true;}else if(!Validate.isValidName(zoffName)){setFieldError(zoffNameEl,'z-zoff-name-err',t('valNameLettersOnly'));hasError=true;}if(zoffMobile&&!Validate.isValidMobile(zoffMobile)){setFieldError(zoffMobileEl,'z-zoff-mobile-err',t('valMobileExact10'));hasError=true;}if(hasError){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>';return;}
+  const wards=wardsRaw.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  setStatus(t('saving'),'saving');
+  let result;const body={zone:name,zoneHindi:hindi,wards,zonalOfficerName:zoffName,zonalOfficerMobile:zoffMobile};
+  if(editId){result=await apiPut('/zones/'+editId,body);}else{result=await apiPost('/zones',body);}
+  if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';setStatus(t('ready'),'');return;}
+  await loadAllData();showSaved();closeModal();go('zonemaster');
+}
+async function deleteZone(id){const z=getZoneById(id);if(!z)return;const linkedCount=STATE.offs.filter(function(o){return o.level===1&&(o.wards||[]).some(function(w){return z.wards.includes(w);});}).length;if(!confirm(linkedCount?(linkedCount+' '+t('deleteZoneConfirmLinked')):t('deleteZoneConfirm')))return;setStatus(t('saving'),'saving');await apiDel('/zones/'+id);await loadAllData();showSaved();go('zonemaster');}
+
+// ============================================================
+// OFFICER MODALS
+// ============================================================
+function openAddOff(deptId){openOffModal(deptId,null);}
+function openEditOff(id){const o=getOffById(id);if(o)openOffModal(o.deptId,o);}
+function buildOffModalContent(deptId,level,currentSelSupIds,isZonalFlag,existing,cap){
+  const supLevel=level+1;
+  const levelFieldHtml='<div class="form-group"><label class="form-label">'+(isZonalFlag?t('zonalOfficerLevelLabel'):t('officerLevelLabel'))+'</label><input type="number" min="1" '+(cap!==null?('max="'+cap+'"'):'')+' class="form-control" id="off-level" value="'+level+'">'+(cap!==null?'<div class="form-hint">'+t('officerLevelHint',{cap:cap})+'</div>':'')+'<div class="field-error" id="off-level-err"></div></div>';
+  const isZonalFieldHtml='<div class="form-group"><label class="form-label">'+t('isZonalOfficerLabel')+'</label><select class="form-control" id="off-iszonal"><option value="no"'+(!isZonalFlag?' selected':'')+'>'+t('no')+'</option><option value="yes"'+(isZonalFlag?' selected':'')+'>'+t('yes')+'</option></select>'+(isZonalFlag?'<div class="form-hint">'+t('zonalLevelNote')+'</div>':'')+'</div>';
+  if(isZonalFlag){return levelFieldHtml+isZonalFieldHtml+'<div id="off-err"></div>';}
+  const nextLevelIsZonal=(cap!==null&&supLevel===cap);
+  function supSectionHtml(lvl,selSupIds){const supLvl=lvl+1;const supOffs=getOffs(deptId).filter(function(o){return o.level===supLvl&&(!existing||offId(o)!==offId(existing))&&!o.isZonal;});if(!supOffs.length){return'<div class="alert alert-warn"><span class="alert-icon">⚠️</span>'+t('noSupOfficersFound',{level:supLvl})+'</div>';}let opts='';supOffs.forEach(function(o){opts+='<option value="'+offId(o)+'"'+(selSupIds.includes(offId(o))?' selected':'')+'>'+h(o.name)+(o.desig?' ('+h(o.desig)+')':'')+' — L'+o.level+'</option>';});return'<select class="form-control" id="off-sups" multiple style="min-height:'+(Math.min(supOffs.length,5)*40)+'px">'+opts+'</select><div class="form-hint">'+t('holdCtrlHint')+'</div>';}
+  return levelFieldHtml+isZonalFieldHtml
+    +'<div class="form-row"><div class="form-group"><label class="form-label">'+t('officerNameLabel')+'</label><input class="form-control" id="off-name" value="'+(existing?h(existing.name||''):'')+'" placeholder="'+h(t('officerNamePlaceholder'))+'"><div class="field-error" id="off-name-err"></div></div><div class="form-group"><label class="form-label">'+t('mobileNumberLabel')+'</label><input class="form-control" id="off-mobile" value="'+(existing?h(existing.mobile||''):'')+'" placeholder="'+h(t('mobileNumberPlaceholder'))+'" maxlength="10" inputmode="numeric"><div class="field-error" id="off-mobile-err"></div></div></div>'
+    +'<div class="form-group"><label class="form-label">'+t('designationLabel')+'</label><input class="form-control" id="off-desig" value="'+(existing?h(existing.desig||''):'')+'" placeholder="'+h(t('designationPlaceholder'))+'"></div>'
+    +'<div id="off-ward-sec" style="display:'+(level===1?'block':'none')+'"><div class="form-group"><label class="form-label">'+t('assignedWardsLabel')+'</label><input class="form-control" id="off-wards" value="'+(existing&&existing.wards?existing.wards.join(','):'')+'" placeholder="'+h(t('wardNumbersPlaceholder'))+'"><div class="form-hint">'+t('assignedWardsHint')+'</div><div class="field-error" id="off-wards-err"></div></div></div>'
+    +(nextLevelIsZonal?'<div class="alert alert-info" id="off-sup-wrap"><span class="alert-icon">🏁</span>'+t('zonalAutoReportNote',{level:supLevel})+'</div>':'<div class="form-group" id="off-sup-wrap"><label class="form-label" id="sup-label">'+t('reportsToLabel')+' <span style="font-size:11.5px;color:var(--text-muted);font-weight:400">(L'+supLevel+' '+t('officersOnly')+')</span></label><div id="off-sup-sec">'+supSectionHtml(level,currentSelSupIds)+'</div></div>')
+    +'<div id="off-err"></div>';
+}
+function openOffModal(deptId,existing){
+  const isEdit=!!existing,selLevel=existing?existing.level:1,selSupIds=existing?supIds(existing):[],selIsZonal=existing?!!existing.isZonal:false;
+  const cap=getDeptZonalCapLevel(deptId,existing?offId(existing):null);
+  function modalTitle(z){return z?'🏁 '+(isEdit?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(isEdit?'✏️ '+t('editOfficer'):'👤 '+t('addOfficerModalTitle'));}
+  function saveLabel(z){return z?(isEdit?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(isEdit?t('updateOfficer'):t('addOfficerBtn'));}
+  showModal(modalTitle(selIsZonal),buildOffModalContent(deptId,selLevel,selSupIds,selIsZonal,existing,cap),[
+    {label:t('cancel'),cls:'btn-secondary',fn:closeModal},
+    {label:saveLabel(selIsZonal),cls:'btn-primary',fn:function(){saveOff(deptId,existing?offId(existing):null);}}
+  ]);
+  wireOffModalInputs(deptId,existing,cap);
+}
+function wireOffModalInputs(deptId,existing,cap){
+  const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),wardsEl0=document.getElementById('off-wards'),levelInput=document.getElementById('off-level'),isZonalSel=document.getElementById('off-iszonal');
+  constrainNameInput(nameEl);constrainMobileInput(mobileEl);
+  if(nameEl)nameEl.addEventListener('input',function(){if(!this.value.trim()||Validate.isValidName(this.value))clearFieldError(this,'off-name-err');else setFieldError(this,'off-name-err',t('valNameLettersOnly'));});
+  if(mobileEl)mobileEl.addEventListener('input',function(){if(!this.value.trim()||Validate.isValidMobile(this.value))clearFieldError(this,'off-mobile-err');else setFieldError(this,'off-mobile-err',t('valMobileExact10'));});
+  if(wardsEl0)wardsEl0.addEventListener('input',function(){if(Validate.isValidWardsRaw(this.value))clearFieldError(this,'off-wards-err');else setFieldError(this,'off-wards-err',t('valWardsInvalid'));});
+  function rerenderBody(){const newLevel=parseInt(levelInput.value)||1;const isZonalNow=isZonalSel.value==='yes';const selSupIds=(!isZonalNow&&document.getElementById('off-sups'))?Array.from(document.getElementById('off-sups').selectedOptions).map(function(o){return o.value;}):(existing?supIds(existing):[]);document.getElementById('modal-title').innerHTML=isZonalNow?'🏁 '+(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?'✏️ '+t('editOfficer'):'👤 '+t('addOfficerModalTitle'));document.getElementById('modal-body').innerHTML=buildOffModalContent(deptId,newLevel,selSupIds,isZonalNow,existing,cap);const mfb1=document.getElementById('mfb1');if(mfb1)mfb1.textContent=isZonalNow?(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?t('updateOfficer'):t('addOfficerBtn'));wireOffModalInputs(deptId,existing,cap);}
+  if(levelInput)levelInput.addEventListener('change',rerenderBody);if(isZonalSel)isZonalSel.addEventListener('change',rerenderBody);
+}
+async function saveOff(deptId,editId){
+  const levelInput=document.getElementById('off-level');const isZonal=document.getElementById('off-iszonal').value==='yes';const errEl=document.getElementById('off-err');errEl.innerHTML='';clearFieldError(levelInput,'off-level-err');let hasError=false;
+  const level=parseInt(levelInput.value,10);if(isNaN(level)||level<1){setFieldError(levelInput,'off-level-err',t('errLevelInvalid'));hasError=true;}
+  const cap=getDeptZonalCapLevel(deptId,editId);if(!hasError&&cap!==null&&level>cap){setFieldError(levelInput,'off-level-err',t('errLevelExceedsCap',{cap:cap}));hasError=true;}
+  if(!hasError&&isZonal){const higherExists=getOffs(deptId).some(function(o){return offId(o)!==editId&&o.level>level;});if(higherExists){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('errZonalHigherExists')+'</div>';return;}}
+  if(hasError){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>';return;}
+  let body;
+  if(isZonal){body={deptId,level,name:'',mobile:'',desig:'',wards:[],supIds:[],isZonal:true};}
+  else{
+    const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),desigEl=document.getElementById('off-desig');const name=Validate.sanitizeText(nameEl.value),mobile=Validate.sanitizeText(mobileEl.value),desig=Validate.sanitizeText(desigEl.value);const wardsEl=document.getElementById('off-wards');clearFieldError(nameEl,'off-name-err');clearFieldError(mobileEl,'off-mobile-err');if(wardsEl)clearFieldError(wardsEl,'off-wards-err');hasError=false;const wardsRaw=wardsEl?wardsEl.value.trim():'';const wards=(level===1&&wardsEl)?wardsRaw.split(',').map(function(x){return x.trim();}).filter(Boolean):[];if(!name){setFieldError(nameEl,'off-name-err',t('officerNameRequired'));hasError=true;}else if(!Validate.isValidName(name)){setFieldError(nameEl,'off-name-err',t('valNameLettersOnly'));hasError=true;}if(mobile&&!Validate.isValidMobile(mobile)){setFieldError(mobileEl,'off-mobile-err',t('valMobileExact10'));hasError=true;}if(wardsEl&&wardsRaw&&!Validate.isValidWardsRaw(wardsRaw)){setFieldError(wardsEl,'off-wards-err',t('valWardsInvalid'));hasError=true;}if(hasError){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>';return;}const supSel=document.getElementById('off-sups');const finalSupIds=supSel?Array.from(supSel.selectedOptions).map(function(o){return o.value;}).filter(Boolean):[];
+    body={deptId,level,name,mobile,desig,wards,supIds:finalSupIds,isZonal:false};
+  }
+  setStatus(t('saving'),'saving');
+  let result;if(editId){result=await apiPut('/officers/'+editId,body);}else{result=await apiPost('/officers',body);}
+  if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';setStatus(t('ready'),'');return;}
+  await loadAllData();showSaved();closeModal();go('officers',deptId);
+}
+async function deleteOff(id){if(!confirm(t('deleteOfficerConfirm')))return;setStatus(t('saving'),'saving');await apiDel('/officers/'+id);await loadAllData();showSaved();go('officers',VIEW.deptId);}
+
+// ============================================================
+// DEPT CRUD
+// ============================================================
+function openAddDept(){showModal('🏢 '+t('addNewDepartmentTitle'),'<div class="form-group"><label class="form-label">'+t('deptNameEnLabel')+'</label><input class="form-control" id="d-name" placeholder="'+h(t('deptNameEnPlaceholder'))+'"></div><div class="form-group"><label class="form-label">'+t('deptHindiLabel')+'</label><input class="form-control" id="d-hindi" placeholder="'+h(t('deptHindiPlaceholder'))+'"></div><div class="form-group"><label class="form-label">'+t('deptIconLabel')+'</label><input class="form-control" id="d-icon" placeholder="🏢" maxlength="4"></div><div id="d-err"></div>',[{label:t('cancel'),cls:'btn-secondary',fn:closeModal},{label:t('addDepartmentBtn'),cls:'btn-primary',fn:async function(){const name=document.getElementById('d-name').value.trim();const hindi=document.getElementById('d-hindi').value.trim();const icon=document.getElementById('d-icon').value.trim()||'🏢';if(!name){document.getElementById('d-err').innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('nameRequired')+'</div>';return;}setStatus(t('saving'),'saving');const result=await apiPost('/departments',{name,hindi,icon});if(result&&result.error){document.getElementById('d-err').innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';setStatus(t('ready'),'');return;}await loadAllData();showSaved();closeModal();go('home');}}]);}
+
+async function deleteDept(id){if(!confirm(t('deleteDeptConfirm')))return;setStatus(t('saving'),'saving');await apiDel('/departments/'+id);await loadAllData();showSaved();go('home');}
+
+// ============================================================
+// PDF / EXCEL EXPORT
+// ============================================================
+function exportPDF(){const d=getDept(VIEW.deptId);if(!d)return;try{const jsPDF=window.jspdf.jsPDF;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(d.name+' — '+t('hierarchyReport'),14,15);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Generated: '+new Date().toLocaleDateString('en-IN'),14,22);const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));function fmtList(list,zone){if(!list||!list.length)return'—';return list.map(function(o){let dn=o.name,dd=o.desig;if(o.isZonal){if(zone&&zone.zonalOfficerName){dn=zone.zonalOfficerName;}else{dn=t('unassigned');}dd='';}return dn+(dd?'\n'+dd:'');}).join('\n\n');}const head=[t('sno'),t('zoneNoCol'),t('wardNo'),'L1'];for(let i=2;i<=maxLevel;i++)head.push('L'+i);const body=rows.map(function(r){const zoneLabel=r.zone?(r.zone.zone+(r.zone.zoneHindi?' ('+r.zone.zoneHindi+')':'')):t('unassigned');const rowArr=[String(r.no),zoneLabel,r.wards.join(', '),r.l1.name+(r.l1.desig?'\n'+r.l1.desig:'')];r.chains.forEach(function(oList){rowArr.push(fmtList(oList,r.zone));});return rowArr;});doc.autoTable({head:[head],body,startY:28,styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[10,35,66],textColor:[255,255,255],fontStyle:'bold'},alternateRowStyles:{fillColor:[240,246,255]},columnStyles:{0:{cellWidth:12},1:{cellWidth:36},2:{cellWidth:44}}});doc.save(d.name.replace(/\s+/g,'_')+'_Report.pdf');}catch(e){window.print();}}
+
+function exportExcel(){const d=getDept(VIEW.deptId);if(!d)return;try{const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));function fmtCell(list,zone){if(!list||!list.length)return'—';return list.map(function(o){let dn=o.name,dd=o.desig,dm=o.mobile;if(o.isZonal){if(zone&&zone.zonalOfficerName){dn=zone.zonalOfficerName;dm=zone.zonalOfficerMobile||'';}else{dn=t('unassigned');dm='';}dd='';}let l=dn;if(dd)l+=' ('+dd+')';if(dm)l+=' ['+dm+']';return l;}).join('\n');}function fmtL1(o){let l=o.name;if(o.desig)l+=' ('+o.desig+')';if(o.mobile)l+=' ['+o.mobile+']';return l;}const headers=[t('sno'),t('zoneNoCol'),t('wardNo'),'L1'];for(let i=2;i<=maxLevel;i++)headers.push('L'+i);const dataRows=rows.map(function(r){const zoneLabel=r.zone?(r.zone.zone+(r.zone.zoneHindi?' ('+r.zone.zoneHindi+')':'')):t('unassigned');const rowArr=[r.no,zoneLabel,r.wards.join(', '),fmtL1(r.l1)];r.chains.forEach(function(oList){rowArr.push(fmtCell(oList,r.zone));});return rowArr;});const ws=XLSX.utils.aoa_to_sheet([headers].concat(dataRows));ws['!cols']=headers.map(function(_,i){return i===0?{wch:8}:{wch:26};});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,t('hierarchyReport').slice(0,31)||'Report');XLSX.writeFile(wb,(d.name||'Department').replace(/\s+/g,'_')+'_Report.xlsx');}catch(e){alert('Excel export failed.');}}
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function doLogin(){
+  const username=document.getElementById('lp-username').value.trim();const password=document.getElementById('lp-password').value;const errEl=document.getElementById('lp-err');const btn=document.getElementById('lp-submit');
+  errEl.innerHTML='';clearFieldError(document.getElementById('lp-username'),'lp-un-err');
+  if(!username){setFieldError(document.getElementById('lp-username'),'lp-un-err','Username is required.');return;}
+  if(!password){setFieldError(document.getElementById('lp-password'),'lp-pw-err','Password is required.');return;}
+  btn.disabled=true;document.getElementById('lp-btn-text').textContent='Logging in...';
+  try{const resp=await fetch(API_BASE+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});const data=await resp.json();if(!resp.ok||data.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">🔒</span>'+(data.error||'Login failed.')+'</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');return;}setToken(data.token);document.getElementById('admin-username-badge').textContent=data.username||'Admin';showApp();}catch(e){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>Server unreachable.</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');}
+}
+function doLogout(){clearToken();showLogin();}
+function showLogin(){document.getElementById('login-page').style.display='';document.getElementById('app').style.display='none';document.getElementById('lp-username').value='';document.getElementById('lp-password').value='';document.getElementById('lp-err').innerHTML='';}
+async function showApp(){document.getElementById('login-page').style.display='none';document.getElementById('app').style.display='flex';document.getElementById('main').innerHTML='<div class="loading"><div class="spinner"></div> '+t('loadingData')+'</div>';await loadAllData();render();}
+
+// ============================================================
+// BIND
+// ============================================================
+function refreshOfficersTable(){const d=getDept(VIEW.deptId);if(!d)return;const filtered=filterOfficers(getOffs(deptId2(d)));const cardBody=document.getElementById('officers-card-body');if(!cardBody)return;cardBody.innerHTML=buildOfficersTableHtml(filtered);cardBody.querySelectorAll('[data-edit-off]').forEach(function(el){el.addEventListener('click',function(){openEditOff(el.getAttribute('data-edit-off'));});});cardBody.querySelectorAll('[data-del-off]').forEach(function(el){el.addEventListener('click',function(){deleteOff(el.getAttribute('data-del-off'));});});}
+function bind(){
+  var zmBtn=document.getElementById('btn-zone-master');if(zmBtn)zmBtn.addEventListener('click',function(){go('zonemaster');});
+  document.querySelectorAll('[data-goto-dept]').forEach(function(el){el.addEventListener('click',function(e){if(e.target.closest('[data-del-dept]'))return;go('dept',el.getAttribute('data-goto-dept'));});});
+  document.querySelectorAll('[data-del-dept]').forEach(function(el){el.addEventListener('click',function(e){e.stopPropagation();deleteDept(el.getAttribute('data-del-dept'));});});
+  var addDept=document.getElementById('btn-add-dept');if(addDept)addDept.addEventListener('click',openAddDept);
+  document.querySelectorAll('.sec-card[data-goto]').forEach(function(el){el.addEventListener('click',function(){go(el.getAttribute('data-goto'),VIEW.deptId);});});
+  document.querySelectorAll('.nav-btn[data-goto]').forEach(function(el){el.addEventListener('click',function(){go(el.getAttribute('data-goto'),VIEW.deptId);});});
+  var addZoneBtn=document.getElementById('btn-add-zone');if(addZoneBtn)addZoneBtn.addEventListener('click',openAddZone);
+  document.querySelectorAll('[data-edit-zone]').forEach(function(el){el.addEventListener('click',function(){openEditZone(el.getAttribute('data-edit-zone'));});});
+  document.querySelectorAll('[data-del-zone]').forEach(function(el){el.addEventListener('click',function(){deleteZone(el.getAttribute('data-del-zone'));});});
+  document.querySelectorAll('[data-add-off]').forEach(function(el){el.addEventListener('click',function(){openAddOff(el.getAttribute('data-add-off'));});});
+  document.querySelectorAll('[data-edit-off]').forEach(function(el){el.addEventListener('click',function(){openEditOff(el.getAttribute('data-edit-off'));});});
+  document.querySelectorAll('[data-del-off]').forEach(function(el){el.addEventListener('click',function(){deleteOff(el.getAttribute('data-del-off'));});});
+  document.querySelectorAll('[data-lvl-filter]').forEach(function(el){el.addEventListener('click',function(){const val=el.getAttribute('data-lvl-filter');_levelFilter=(val==='all')?'all':parseInt(val);const bar=document.getElementById('level-filter-bar');if(bar){bar.querySelectorAll('.lvl-filter-btn').forEach(function(btn){btn.classList.remove('active');});el.classList.add('active');}refreshOfficersTable();});});
+  var s=document.getElementById('off-search');if(s){s.addEventListener('input',function(){_search=this.value;refreshOfficersTable();});}
+  document.querySelectorAll('[data-export-pdf]').forEach(function(el){el.addEventListener('click',exportPDF);});
+  document.querySelectorAll('[data-export-excel]').forEach(function(el){el.addEventListener('click',exportExcel);});
+  // Settings page bindings
+  var cpBtn=document.getElementById('cp-submit');if(cpBtn){cpBtn.addEventListener('click',async function(){const cur=document.getElementById('cp-current').value;const nw=document.getElementById('cp-new').value;const cf=document.getElementById('cp-confirm').value;const errEl=document.getElementById('cp-err');errEl.innerHTML='';if(!cur||!nw||!cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>All fields are required.</div>';return;}if(nw.length<8){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordTooShort')+'</div>';return;}if(nw!==cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordMismatch')+'</div>';return;}cpBtn.disabled=true;const result=await apiPost('/auth/change-password',{currentPassword:cur,newPassword:nw});cpBtn.disabled=false;if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';return;}errEl.innerHTML='<div class="alert" style="background:var(--green-light);color:var(--green);border-color:rgba(19,136,8,.2)"><span class="alert-icon">✅</span>'+t('passwordChanged')+'</div>';document.getElementById('cp-current').value='';document.getElementById('cp-new').value='';document.getElementById('cp-confirm').value='';});}
+}
+
+// Language + logout
+document.getElementById('lang-btn-hi').addEventListener('click',function(){CURRENT_LANG='hi';setSavedLang('hi');applyStaticTranslations();if(STATE.loaded)render();});
+document.getElementById('lang-btn-en').addEventListener('click',function(){CURRENT_LANG='en';setSavedLang('en');applyStaticTranslations();if(STATE.loaded)render();});
+document.getElementById('logout-btn').addEventListener('click',doLogout);
+document.getElementById('lp-submit').addEventListener('click',doLogin);
+document.getElementById('lp-password').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('lp-toggle-pw').addEventListener('click',function(){const inp=document.getElementById('lp-password');inp.type=inp.type==='password'?'text':'password';this.textContent=inp.type==='password'?'👁':'🙈';});
+
+function applyStaticTranslations(){
+  document.getElementById('topbar-title').textContent=t('appTitle');document.getElementById('topbar-subtitle').textContent=t('appSubtitle');setStatus(t('ready'),'');
+  document.getElementById('lang-btn-hi').classList.toggle('active',CURRENT_LANG==='hi');document.getElementById('lang-btn-en').classList.toggle('active',CURRENT_LANG==='en');
+  document.documentElement.lang=CURRENT_LANG;
+  document.getElementById('lp-title').textContent=t('appTitle');document.getElementById('lp-sub').textContent=t('appSubtitle');document.getElementById('lp-badge').textContent=t('adminBadge');document.getElementById('lp-btn-text').textContent=t('loginBtn');document.getElementById('lp-footer').textContent=t('loginFooter');document.getElementById('lp-un-label').textContent=t('usernameLabel');document.getElementById('lp-pw-label').textContent=t('passwordLabel');
+}
+
+// ── Topbar settings link ──────────────────────────────────────
+// Inject into topbar right after admin badge
+(function(){
+  const right=document.querySelector('.topbar-right');if(!right)return;
+  const sBtn=document.createElement('button');sBtn.className='nav-btn';sBtn.style.cssText='background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:.3rem .75rem;font-size:12px';sBtn.textContent='⚙️';sBtn.title='Settings';sBtn.addEventListener('click',function(){go('settings');});right.insertBefore(sBtn,document.getElementById('save-status'));
+})();
+
+// ── INIT ─────────────────────────────────────────────────────
+CURRENT_LANG=getSavedLang();applyStaticTranslations();
+const existingToken=getToken();
+if(existingToken){
+  // Verify token is still valid
+  fetch(API_BASE+'/auth/verify',{headers:{'Authorization':'Bearer '+existingToken}}).then(r=>{if(r.ok)return r.json();throw new Error('invalid');}).then(data=>{document.getElementById('admin-username-badge').textContent=data.username||'Admin';showApp();}).catch(()=>{clearToken();showLogin();});
+}else{showLogin();}
+</script>
+</body>
+</html>
