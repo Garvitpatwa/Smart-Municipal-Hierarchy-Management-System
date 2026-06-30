@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel — Jhansi Nagar Nigam HMS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -210,6 +208,34 @@ tbody tr:hover td{background:#F7F9FF}
 .tree-row:hover{border-color:#C5D0E8;background:#F0F4FF}
 .tree-row.top{background:linear-gradient(135deg,#EEF3FF,#E8EEFF);border-color:#C0CEED;box-shadow:var(--shadow-sm)}
 
+/* ── HIERARCHY PREVIEW ── */
+.hp-wrap{padding:.25rem .25rem 1rem}
+.hp-chain{display:flex;flex-direction:column;align-items:stretch;margin-bottom:2rem;animation:fadeUp .35s cubic-bezier(.4,0,.2,1)}
+.hp-chain:last-child{margin-bottom:0}
+.hp-chain-label{display:flex;align-items:center;gap:.5rem;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--gold-dark);margin-bottom:.75rem;padding-left:.15rem}
+.hp-chain-label .hp-chain-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(232,135,43,.35),transparent)}
+.hp-step{display:flex;flex-direction:column;align-items:center;position:relative}
+.hp-connector{display:flex;flex-direction:column;align-items:center;height:30px;color:var(--text-light);position:relative}
+.hp-connector::before{content:'';position:absolute;top:0;bottom:6px;left:50%;width:2px;background:linear-gradient(180deg,var(--border),#C5D0E8);transform:translateX(-50%)}
+.hp-connector .hp-arrow{margin-top:auto;font-size:13px;line-height:1;color:#9AA7C4;background:var(--white);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);box-shadow:0 1px 3px rgba(10,35,66,.08);position:relative;z-index:1}
+.hp-card{width:100%;max-width:560px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:.85rem 1.1rem;display:flex;align-items:center;gap:.85rem;transition:box-shadow var(--t-med),border-color var(--t-med)}
+.hp-card:hover{box-shadow:var(--shadow-md);border-color:#C5D0E8}
+.hp-card.hp-l1{background:linear-gradient(135deg,#F7FAFF,var(--white));border-color:#C7D6F2;box-shadow:var(--shadow-sm)}
+.hp-card.hp-zonal{background:linear-gradient(135deg,var(--gold-light),#FFFDF9);border-color:rgba(232,135,43,.35)}
+.hp-card-badge{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.hp-card-badge .lbadge{width:38px;height:38px;font-size:13px;border:2px solid var(--white);box-shadow:0 0 0 1px rgba(10,35,66,.06),var(--shadow-sm)}
+.hp-card-body{flex:1;min-width:0}
+.hp-card-levelname{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.2px;margin-bottom:.15rem;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.hp-card-name{font-size:.96rem;font-weight:700;color:var(--navy);line-height:1.25;word-break:break-word}
+.hp-card-name.hp-muted{color:var(--text-muted);font-style:italic;font-weight:600}
+.hp-card-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:.3rem}
+.hp-meta-chip{display:inline-flex;align-items:center;gap:.25rem;font-size:11.5px;color:var(--text-muted);background:var(--ash);border:1px solid var(--border);border-radius:100px;padding:.12rem .55rem}
+.hp-meta-chip.hp-zone-chip{background:#EEF3FF;color:var(--navy);border-color:#D0DBF0;font-weight:600}
+.hp-meta-chip.hp-gold-chip{background:var(--gold-light);color:var(--gold-dark);border-color:rgba(232,135,43,.25);font-weight:700}
+.hp-card-flag{flex-shrink:0;font-size:1.05rem;line-height:1;opacity:.85}
+.hp-empty-zonal{color:var(--text-light);font-style:italic}
+@media(max-width:600px){.hp-card{max-width:100%;padding:.7rem .85rem}.hp-card-badge .lbadge{width:32px;height:32px;font-size:11px}}
+
 .empty-state{text-align:center;padding:3.5rem 1rem;color:var(--text-muted)}
 .empty-state .es-icon{font-size:3.5rem;opacity:.2;margin-bottom:.75rem}
 .empty-state p{font-size:.9rem}
@@ -223,6 +249,67 @@ tbody tr:hover td{background:#F7F9FF}
 .settings-section{margin-bottom:1.5rem}
 .settings-section h3{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 
+/* ── REPORT ── */
+.rpt-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp .3s cubic-bezier(.4,0,.2,1)}
+.rpt-card-header{display:flex;align-items:center;gap:.85rem;padding:1.1rem 1.25rem;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:var(--white)}
+.rpt-icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;background:rgba(255,255,255,.15);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.rpt-info{flex:1;min-width:0}
+.rpt-name-en{font-weight:700;font-size:.95rem;color:var(--white)}
+.rpt-name-hi{font-size:.8rem;color:rgba(255,255,255,.65);margin-top:1px}
+.rpt-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem;padding:1rem 1.25rem .8rem;background:linear-gradient(180deg,#FAFBFF,var(--white));border-bottom:1px solid var(--border)}
+.rpt-meta{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.rpt-title-sm{font-size:.88rem;font-weight:700;color:var(--navy)}
+.rpt-date-badge{font-size:11px;color:var(--text-muted);background:var(--ash);border:1px solid var(--border);border-radius:100px;padding:.15rem .6rem;font-weight:500}
+.rpt-date-badge.green{background:var(--green-light);border-color:rgba(19,136,8,.2);color:var(--green)}
+.rpt-actions{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.rpt-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .95rem;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;letter-spacing:.1px;transition:all var(--t-fast);white-space:nowrap}
+.rpt-btn:active{transform:scale(.96)}
+.rpt-btn-navy{background:var(--navy);color:var(--white);box-shadow:0 2px 8px rgba(10,35,66,.25)}
+.rpt-btn-navy:hover{background:var(--navy-light);box-shadow:0 4px 14px rgba(10,35,66,.35);transform:translateY(-1px)}
+.rpt-btn-green{background:var(--green);color:var(--white);box-shadow:0 2px 8px rgba(19,136,8,.25)}
+.rpt-btn-green:hover{background:#0e6b07;transform:translateY(-1px)}
+.rpt-btn-sm{padding:.32rem .75rem;font-size:12px}
+.rpt-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rpt-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px;border:2px solid #072a57}
+.rpt-table thead th{background:#072a57;color:var(--white);padding:.85rem 1rem;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;position:sticky;top:0;z-index:5;border:1px solid #072a57;text-align:center;vertical-align:middle}
+.rpt-table tbody tr:nth-child(even) td{background:#F7F9FF}
+.rpt-table tbody tr:hover td{background:#E3F2FD;transition:background .15s}
+.rpt-table tbody tr{border-bottom:1px solid #DDE2EF}
+.rpt-table td{padding:1rem;border:1px solid #DDE2EF;vertical-align:middle;text-align:center}
+.rpt-table tbody tr:last-child td{border-bottom:1px solid #DDE2EF}
+.rpt-cell-sno{text-align:center;color:var(--text-muted);font-weight:700;font-size:12px}
+.rpt-cell-zone{text-align:center;vertical-align:middle}
+.rpt-zone-en{font-weight:700;color:var(--navy);text-align:center}
+.rpt-zone-hi{font-size:11.5px;color:var(--text-muted);margin-top:2px;text-align:center}
+.rpt-ward-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin:0;justify-content:center}
+.rpt-ward-chip{background:linear-gradient(135deg,#EEF3FF,#E8EFFE);color:var(--navy);border:1.5px solid #D0DBF0;border-radius:6px;padding:.25rem .5rem;font-size:11px;font-weight:600;text-align:center}
+.rpt-officer-card{padding:0;text-align:center}
+.rpt-officer-name{font-weight:700;font-size:13px;color:var(--navy);text-align:center}
+.rpt-officer-desig{font-size:11px;color:var(--text-muted);margin-top:3px;text-align:center}
+.rpt-officer-mobile{font-size:11px;color:var(--navy);font-family:monospace;margin-top:3px;letter-spacing:.3px;text-align:center}
+.rpt-cell-dash{text-align:center;color:var(--border);font-size:20px;padding:.5rem}
+.rpt-officer-sep{height:1px;background:rgba(0,0,0,.1);margin:6px 0}
+.rpt-cell-zonal .rpt-officer-name{color:var(--green);font-weight:700}
+.rpt-empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.rpt-empty .es-icon{font-size:3rem;opacity:.2;margin-bottom:.75rem}
+.rpt-empty p{font-size:.9rem}
+
+@media print{
+  .rpt-toolbar .rpt-actions{display:none!important}
+  .rpt-table thead th{background:#072a57!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(max-width:768px){
+  .rpt-table{font-size:12px;min-width:500px}
+  .rpt-table thead th{padding:.65rem .75rem;font-size:10px}
+  .rpt-table td{padding:.75rem;font-size:12px}
+  .rpt-icon-wrap{width:48px;height:48px;font-size:24px}
+  .rpt-ward-chip{padding:.2rem .4rem;font-size:10px}
+}
+@media(max-width:480px){
+  .rpt-table{font-size:11px;min-width:450px}
+  .rpt-table thead th{padding:.55rem .6rem;font-size:9px}
+  .rpt-table td{padding:.6rem;font-size:11px}
+}
 @media print{.topbar,.dept-nav,.btn,.breadcrumb-bar,.no-print{display:none!important}body{background:var(--white)}.card{box-shadow:none;border:none}.report-table thead th{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 @media(max-width:600px){.main{padding:1rem .75rem}.topbar-inner{padding:.6rem 1rem}.sec-grid{grid-template-columns:1fr}.topbar-org{font-size:.9rem}}
 </style>
@@ -254,7 +341,7 @@ tbody tr:hover td{background:#F7F9FF}
           <div class="field-error" id="lp-pw-err"></div>
         </div>
         <div id="lp-err" style="margin-bottom:.75rem"></div>
-        <button class="btn btn-primary" id="lp-submit" style="width:100%;justify-content:center;padding:.65rem;font-size:15px" id="lp-btn">
+        <button class="btn btn-primary" id="lp-submit" style="width:100%;justify-content:center;padding:.65rem;font-size:15px">
           <span id="lp-btn-text">Login to Admin Panel</span>
         </button>
         <div style="margin-top:1rem;text-align:center;font-size:11.5px;color:var(--text-light)">
@@ -265,7 +352,7 @@ tbody tr:hover td{background:#F7F9FF}
   </div>
 </div>
 
-<!-- MAIN APP (shown after login) -->
+<!-- MAIN APP -->
 <div id="app" style="display:none">
   <div class="topbar">
     <div class="topbar-inner">
@@ -336,7 +423,7 @@ const I18N = {
     mobile:'Mobile',zoneAssignedWardsReportsTo:'Zone / Assigned Wards / Reports To',
     reportsTo:'↑ Reports To:',noZoneMatch:'No Zone Match',
     hierarchyPreview:'📊 Hierarchy Preview (Top → Bottom)',noOfficersYet:'No officers yet.',
-    print:'🖨️ Print',exportPdf:'📄 Export PDF',exportExcel:'📊 Export Excel',
+    exportPdf:'📄 Export PDF',exportExcel:'📊 Export Excel',
     hierarchyReport:'Hierarchy Report',autoGenNote:'Auto-generated · One row per L1 officer · Columns generated dynamically from levels used',
     wardNo:'Ward No',zoneNoCol:'Zone No',noL1Found:'No L1 officers found.',unassigned:'Unassigned',all:'All',
     editZone:'Edit Zone',addZoneModalTitle:'Add Zone',zoneNameLabel:'Zone Name',zoneNamePlaceholder:'e.g. Zone 1',
@@ -380,6 +467,15 @@ const I18N = {
     passwordChanged:'Password changed successfully.',
     loginTitle:'Login to Admin Panel',usernameLabel:'Username',passwordLabel:'Password',loginBtn:'Login to Admin Panel',
     loginFooter:'Authorised personnel only · Jhansi Nagar Nigam',adminBadge:'Admin Panel',
+    valWardsDuplicateInDept:'These wards are already assigned to another officer in {dept}:',
+    valWardsSelectDifferent:'Please select different wards.',
+    wardsAvailableHint:'Already-assigned wards (in this department) are disabled below.',
+    levelNameEnLabel:'Level Name (English)',levelNameHiLabel:'Level Name (Hindi)',
+    levelNameEnPlaceholder:'e.g. Chief Sanitation & Food Inspector',
+    levelNameHiPlaceholder:'e.g. मुख्य सफाई एवं खाद्य निरीक्षक',
+    levelNameHint:'This name is shared by every officer at this level in this department.',
+    levelNameRequired:'Level name (English) is required.',
+    noZonalOfficerAssigned:'No Zonal Officer Assigned',
   },
   hi: {
     appTitle:'झांसी नगर निगम',appSubtitle:'स्मार्ट म्युनिसिपल हायरार्की मैनेजमेंट सिस्टम',
@@ -440,12 +536,21 @@ const I18N = {
     passwordChanged:'पासवर्ड सफलतापूर्वक बदला गया।',
     loginTitle:'एडमिन पैनल में लॉग इन करें',usernameLabel:'उपयोगकर्ता नाम',passwordLabel:'पासवर्ड',
     loginBtn:'एडमिन पैनल में लॉग इन करें',loginFooter:'केवल अधिकृत कर्मी · झांसी नगर निगम',adminBadge:'एडमिन पैनल',
+    valWardsDuplicateInDept:'ये वार्ड {dept} में किसी अन्य अधिकारी को पहले से नियत हैं:',
+    valWardsSelectDifferent:'कृपया अलग वार्ड चुनें।',
+    wardsAvailableHint:'इस विभाग में पहले से नियत वार्ड नीचे अक्षम (disabled) हैं।',
+    levelNameEnLabel:'स्तर का नाम (अंग्रेज़ी)',levelNameHiLabel:'स्तर का नाम (हिन्दी)',
+    levelNameEnPlaceholder:'जैसे Chief Sanitation & Food Inspector',
+    levelNameHiPlaceholder:'जैसे मुख्य सफाई एवं खाद्य निरीक्षक',
+    levelNameHint:'यह नाम इस विभाग में इस स्तर के सभी अधिकारियों द्वारा साझा किया जाता है।',
+    levelNameRequired:'स्तर का नाम (अंग्रेज़ी) आवश्यक है।',
+    noZonalOfficerAssigned:'कोई जोनल अधिकारी नियत नहीं है',
   }
 };
-let CURRENT_LANG='hi';
+let CURRENT_LANG = 'en';
 function t(key,vars){let str=(I18N[CURRENT_LANG]&&I18N[CURRENT_LANG][key])||(I18N.en[key])||key;if(vars){Object.keys(vars).forEach(function(k){str=str.split('{'+k+'}').join(vars[k]);});}return str;}
-function getSavedLang(){try{return localStorage.getItem('hms_lang')||'hi';}catch(e){return'hi';}}
-function setSavedLang(lang){try{localStorage.setItem('hms_lang',lang);}catch(e){}}
+function getSavedLang(){try{return localStorage.getItem('hms-language')||'en';}catch(e){return'en';}}
+function setSavedLang(lang){try{localStorage.setItem('hms-language',lang);}catch(e){}}
 
 // ============================================================
 // AUTH
@@ -455,10 +560,16 @@ function getToken(){return JWT_TOKEN||(JWT_TOKEN=sessionStorage.getItem('hms_adm
 function setToken(t){JWT_TOKEN=t;sessionStorage.setItem('hms_admin_token',t);}
 function clearToken(){JWT_TOKEN=null;sessionStorage.removeItem('hms_admin_token');}
 function authHeader(){return{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json'};}
-async function apiGet(path){const r=await fetch(API_BASE+path,{headers:authHeader()});if(r.status===401){doLogout();return null;}return r.json();}
-async function apiPost(path,body){const r=await fetch(API_BASE+path,{method:'POST',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return r.json();}
-async function apiPut(path,body){const r=await fetch(API_BASE+path,{method:'PUT',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return r.json();}
-async function apiDel(path){const r=await fetch(API_BASE+path,{method:'DELETE',headers:authHeader()});if(r.status===401){doLogout();return null;}return r.json();}
+async function safeJson(r){
+  let text='';
+  try{text=await r.text();}catch(e){return{error:'Network error. Please try again.'};}
+  if(!text)return r.ok?{}:{error:'Server returned an empty response (status '+r.status+').'};
+  try{return JSON.parse(text);}catch(e){return{error:'Server returned an unexpected response (status '+r.status+').'};}
+}
+async function apiGet(path){try{const r=await fetch(API_BASE+path,{headers:authHeader()});if(r.status===401){doLogout();return null;}return await safeJson(r);}catch(e){return{error:'Network error. Please check your connection and try again.'};}}
+async function apiPost(path,body){try{const r=await fetch(API_BASE+path,{method:'POST',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return await safeJson(r);}catch(e){return{error:'Network error. Please check your connection and try again.'};}}
+async function apiPut(path,body){try{const r=await fetch(API_BASE+path,{method:'PUT',headers:authHeader(),body:JSON.stringify(body)});if(r.status===401){doLogout();return null;}return await safeJson(r);}catch(e){return{error:'Network error. Please check your connection and try again.'};}}
+async function apiDel(path){try{const r=await fetch(API_BASE+path,{method:'DELETE',headers:authHeader()});if(r.status===401){doLogout();return null;}return await safeJson(r);}catch(e){return{error:'Network error. Please check your connection and try again.'};}}
 
 // ============================================================
 // VALIDATION
@@ -478,7 +589,7 @@ function clearFieldError(inputEl,errElId){if(inputEl)inputEl.classList.remove('f
 // ============================================================
 // STATE
 // ============================================================
-let STATE={depts:[],zones:[],offs:[],loaded:false};
+let STATE={depts:[],zones:[],offs:[],levelNames:[],loaded:false};
 let VIEW={page:'home',deptId:null};
 let _search='';let _levelFilter='all';
 
@@ -492,24 +603,96 @@ const getZoneById=id=>STATE.zones.find(z=>(z._id||z.id)===id);
 const offId=o=>o._id||o.id;
 const deptId2=d=>d._id||d.id;
 
+// ── Level Name helpers ──────────────────────────────────────
+const levelNameId=ln=>ln._id||ln.id;
+function getLevelNameRecord(deptId,level){
+  const lvl=parseInt(level);
+  return STATE.levelNames.find(function(ln){return ln.deptId===deptId&&Number(ln.level)===lvl;})||null;
+}
+function getLevelDisplayName(deptId,level){
+  const rec=getLevelNameRecord(deptId,level);
+  if(!rec)return'';
+  const name=(CURRENT_LANG==='hi')?(rec.nameHi||rec.nameEn||''):(rec.nameEn||rec.nameHi||'');
+  return name||'';
+}
+function getLevelLabel(deptId,level){
+  const name=getLevelDisplayName(deptId,level);
+  return name?(name+' (L'+level+')'):('L'+level);
+}
+
+// ── CHANGE 1: getDefaultDesig helper ─────────────────────────
+// Returns the saved default designation for a dept+level combo.
+// Returns empty string if none saved yet.
+function getDefaultDesig(deptId,level){
+  const rec=getLevelNameRecord(deptId,level);
+  return(rec&&rec.defaultDesig)?rec.defaultDesig:'';
+}
+
+// ── CHANGE 2: saveLevelName now accepts defaultDesig ──────────
+async function saveLevelName(deptId,level,nameEn,nameHi,defaultDesig){
+  const result=await apiPost('/levelnames',{
+    deptId,
+    level:Number(level),
+    nameEn:(nameEn||'').trim(),
+    nameHi:(nameHi||'').trim(),
+    defaultDesig:(defaultDesig!==undefined?String(defaultDesig).trim():'')
+  });
+  return result;
+}
+
 function findZoneByWards(wards){if(!wards||!wards.length)return null;let best=null,bestScore=0;STATE.zones.forEach(function(z){const score=wards.filter(function(w){return z.wards.includes(w);}).length;if(score>bestScore){bestScore=score;best=z;}});return bestScore>0?best:null;}
 function getDeptMaxLevel(deptId){const offs=getOffs(deptId);if(!offs.length)return 1;let max=1;offs.forEach(function(o){if(o.level>max)max=o.level;});return max;}
 function getDeptZonalCapLevel(deptId,excludeId){let cap=null;getOffs(deptId).forEach(function(o){if(o.isZonal&&offId(o)!==excludeId){if(cap===null||o.level<cap)cap=o.level;}});return cap;}
 function getDeptZonalRecord(deptId){return getOffs(deptId).find(function(o){return o.isZonal;})||null;}
 
 // ============================================================
+// WARD UNIQUENESS HELPERS
+// ============================================================
+function getWardOwnershipMap(deptId,excludeOffId){
+  const map={};
+  getOffs(deptId).forEach(function(o){
+    if(o.isZonal)return;
+    if(excludeOffId&&offId(o)===excludeOffId)return;
+    (o.wards||[]).forEach(function(w){
+      const key=String(w).trim();
+      if(!key)return;
+      if(!map[key])map[key]=o;
+    });
+  });
+  return map;
+}
+function parseWardsInput(raw){
+  const seen={};const out=[];
+  (raw||'').split(',').forEach(function(x){
+    const w=x.trim();
+    if(!w)return;
+    if(seen[w])return;
+    seen[w]=true;out.push(w);
+  });
+  return out;
+}
+function validateWardUniqueness(deptId,wards,excludeOffId){
+  const ownership=getWardOwnershipMap(deptId,excludeOffId);
+  const dupWards=(wards||[]).filter(function(w){return!!ownership[String(w).trim()];});
+  if(dupWards.length)return{ok:false,dupWards:dupWards};
+  return{ok:true};
+}
+
+// ============================================================
 // API DATA LOADING
 // ============================================================
 async function loadAllData(){
   setStatus(t('loadingData'),'');
-  const [depts,zones,offs]=await Promise.all([
+  const [depts,zones,offs,levelNames]=await Promise.all([
     fetch(API_BASE+'/departments',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
     fetch(API_BASE+'/zones',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
     fetch(API_BASE+'/officers',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
+    fetch(API_BASE+'/levelnames',{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
   ]);
   STATE.depts=Array.isArray(depts)?depts:[];
   STATE.zones=Array.isArray(zones)?zones:[];
   STATE.offs=Array.isArray(offs)?offs.map(function(o){return Object.assign({isZonal:false},o,{isZonal:!!o.isZonal});}):[]; 
+  STATE.levelNames=Array.isArray(levelNames)?levelNames:[];
   STATE.loaded=true;
   setStatus(t('ready'),'');
 }
@@ -541,7 +724,7 @@ function pgHome(){
 function statBox(icon,val,label){return'<div class="stat-box"><div class="stat-icon">'+icon+'</div><div class="stat-value">'+val+'</div><div class="stat-label">'+label+'</div></div>';}
 
 // ============================================================
-// DEPT / OFFICER / ZONE / REPORT pages (identical logic to original)
+// DEPT PAGE
 // ============================================================
 function pgDept(){const d=getDept(VIEW.deptId);if(!d)return'<div class="alert alert-danger">'+t('deptNotFound')+'</div>';const secs=[{title:t('officerManagementCard'),sub:t('officerManagementCardSub'),icon:'👤',page:'officers',badge:getOffs(deptId2(d)).length+' '+t('officers'),badgeCls:'badge-primary'},{title:t('viewReportCard'),sub:t('viewReportCardSub'),icon:'📋',page:'report',badge:t('excelStyle'),badgeCls:'badge-gold'}];let secHtml='';secs.forEach(function(s){secHtml+='<div class="sec-card" data-goto="'+s.page+'"><div class="sec-card-body"><div class="sec-card-icon">'+s.icon+'</div><div class="sec-card-title">'+s.title+'</div><div class="sec-card-sub">'+s.sub+'</div><span class="badge '+s.badgeCls+'">'+s.badge+'</span></div></div>';});return'<div class="page-header" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><div style="font-size:3rem;line-height:1">'+d.icon+'</div><div><h1>'+h(d.name)+'</h1><p>'+h(d.hindi||'')+'</p></div></div><div class="sec-grid">'+secHtml+'</div>';}
 
@@ -554,38 +737,146 @@ function pgZoneMaster(){
 
 function getAvailableLevels(deptId){const offs=getOffs(deptId),levels=[];offs.forEach(function(o){if(!levels.includes(o.level))levels.push(o.level);});levels.sort(function(a,b){return a-b;});return levels;}
 function filterOfficers(offs){const searchText=_search.toLowerCase();return offs.filter(function(o){if(_levelFilter!=='all'&&o.level!==_levelFilter)return false;if(!_search)return true;return(o.name||'').toLowerCase().includes(searchText)||(o.mobile||'').includes(_search);});}
-function buildLevelFilterBarHtml(deptId){const levels=getAvailableLevels(deptId);let html='<div class="level-filter-bar" id="level-filter-bar"><button class="lvl-filter-btn'+(_levelFilter==='all'?' active':'')+'" data-lvl-filter="all">'+t('all')+'</button>';levels.forEach(function(l){html+='<button class="lvl-filter-btn'+(_levelFilter===l?' active':'')+'" data-lvl-filter="'+l+'">L'+l+'</button>';});return html+'</div>';}
+function buildLevelFilterBarHtml(deptId){const levels=getAvailableLevels(deptId);let html='<div class="level-filter-bar" id="level-filter-bar"><button class="lvl-filter-btn'+(_levelFilter==='all'?' active':'')+'" data-lvl-filter="all">'+t('all')+'</button>';levels.forEach(function(l){html+='<button class="lvl-filter-btn'+(_levelFilter===l?' active':'')+'" data-lvl-filter="'+l+'">'+h(getLevelLabel(deptId,l))+'</button>';});return html+'</div>';}
 
-function buildOfficersTableHtml(filtered){
+function buildOfficersTableHtml(deptId,filtered){
   if(!filtered.length)return'<div class="empty-state"><div class="es-icon">👤</div><p>'+t('noOfficersFound')+'</p></div>';
-  let trs='';filtered.forEach(function(o,i){const sups=supIds(o).map(getOffById).filter(Boolean);let zoneCell='';if(o.level===1){const zone=findZoneByWards(o.wards);zoneCell=zone?'<span class="badge badge-primary">'+h(zone.zone)+'</span>':'<span class="badge badge-warn">'+t('noZoneMatch')+'</span>';zoneCell+='<div class="ward-chips">'+(o.wards||[]).map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div>';}const isZonal=!!o.isZonal;let supCell='';if(isZonal){supCell='<div style="font-size:11px;color:var(--text-muted)">'+t('treeZonalNote')+'</div>';}else if(sups.length){supCell='<div style="font-size:11.5px;color:var(--text-muted)">'+t('reportsTo')+' '+sups.map(function(s){return'<strong>'+h(s.name)+'</strong>';}).join(', ')+'</div>';}const zonalBadge=isZonal?' <span class="badge badge-gold" style="font-size:10px">🏁 '+t('zonalLevelBadge')+'</span>':'';trs+='<tr><td style="text-align:center;color:var(--text-muted)">'+(i+1)+'</td><td><span class="lbadge '+lvlCls(o.level)+'">L'+o.level+'</span>'+zonalBadge+'</td><td>'+(isZonal?'<em style="color:var(--text-muted)">'+t('zonalLevelBadge')+'</em>':'<strong>'+h(o.name)+'</strong>')+'</td><td style="font-size:12.5px;color:var(--text-muted)">'+(isZonal?'':h(o.desig||''))+'</td><td style="font-family:monospace;font-size:13px">'+(isZonal?'':h(o.mobile||''))+'</td><td>'+zoneCell+supCell+'</td><td style="white-space:nowrap"><button class="btn-icon" data-edit-off="'+offId(o)+'">✏️</button> <button class="btn-icon danger" data-del-off="'+offId(o)+'">🗑️</button></td></tr>';});
+  let trs='';filtered.forEach(function(o,i){const sups=supIds(o).map(getOffById).filter(Boolean);let zoneCell='';if(o.level===1){const zone=findZoneByWards(o.wards);zoneCell=zone?'<span class="badge badge-primary">'+h(zone.zone)+'</span>':'<span class="badge badge-warn">'+t('noZoneMatch')+'</span>';zoneCell+='<div class="ward-chips">'+(o.wards||[]).map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div>';}const isZonal=!!o.isZonal;let supCell='';if(isZonal){supCell='<div style="font-size:11px;color:var(--text-muted)">'+t('treeZonalNote')+'</div>';}else if(sups.length){supCell='<div style="font-size:11.5px;color:var(--text-muted)">'+t('reportsTo')+' '+sups.map(function(s){return'<strong>'+h(s.name)+'</strong>';}).join(', ')+'</div>';}const zonalBadge=isZonal?' <span class="badge badge-gold" style="font-size:10px">🏁 '+t('zonalLevelBadge')+'</span>':'';const levelLabel=getLevelLabel(deptId,o.level);trs+='<tr><td style="text-align:center;color:var(--text-muted)">'+(i+1)+'</td><td><span class="lbadge '+lvlCls(o.level)+'">L'+o.level+'</span>'+zonalBadge+'<div style="font-size:11px;color:var(--text-muted);margin-top:.25rem;max-width:160px">'+h(levelLabel)+'</div></td><td>'+(isZonal?'<em style="color:var(--text-muted)">'+t('zonalLevelBadge')+'</em>':'<strong>'+h(o.name)+'</strong>')+'</td><td style="font-size:12.5px;color:var(--text-muted)">'+(isZonal?'':h(o.desig||''))+'</td><td style="font-family:monospace;font-size:13px">'+(isZonal?'':h(o.mobile||''))+'</td><td>'+zoneCell+supCell+'</td><td style="white-space:nowrap"><button class="btn-icon" data-edit-off="'+offId(o)+'">✏️</button> <button class="btn-icon danger" data-del-off="'+offId(o)+'">🗑️</button></td></tr>';});
   return'<div class="table-wrap"><table><thead><tr><th>'+t('sno')+'</th><th>'+t('level')+'</th><th>'+t('name')+'</th><th>'+t('designation')+'</th><th>'+t('mobile')+'</th><th>'+t('zoneAssignedWardsReportsTo')+'</th><th>'+t('actions')+'</th></tr></thead><tbody>'+trs+'</tbody></table></div>';
 }
 
-function pgOfficers(){const d=getDept(VIEW.deptId);if(!d)return'';const offs=getOffs(deptId2(d)),filtered=filterOfficers(offs);return deptNav('officers')+'<div class="card"><div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:.6rem"><div class="card-title">'+t('officersFor')+' '+h(d.name)+'</div><div class="officers-toolbar">'+buildLevelFilterBarHtml(deptId2(d))+'<div class="search-wrap"><span class="search-icon">🔍</span><input class="form-control" id="off-search" placeholder="'+h(t('searchPlaceholder'))+'" value="'+h(_search)+'" style="padding-left:2.1rem"></div><button class="btn btn-primary btn-sm" data-add-off="'+deptId2(d)+'">'+t('addOfficer')+'</button></div></div><div class="card-body" style="padding:0" id="officers-card-body">'+buildOfficersTableHtml(filtered)+'</div></div><div class="card no-print" style="margin-top:1.25rem"><div class="card-header"><div class="card-title">'+t('hierarchyPreview')+'</div></div><div class="card-body">'+buildTreeHTML(deptId2(d))+'</div></div>';}
+function pgOfficers(){const d=getDept(VIEW.deptId);if(!d)return'';const dId=deptId2(d);const offs=getOffs(dId),filtered=filterOfficers(offs);return deptNav('officers')+'<div class="card"><div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:.6rem"><div class="card-title">'+t('officersFor')+' '+h(d.name)+'</div><div class="officers-toolbar">'+buildLevelFilterBarHtml(dId)+'<div class="search-wrap"><span class="search-icon">🔍</span><input class="form-control" id="off-search" placeholder="'+h(t('searchPlaceholder'))+'" value="'+h(_search)+'" style="padding-left:2.1rem"></div><button class="btn btn-primary btn-sm" data-add-off="'+dId+'">'+t('addOfficer')+'</button></div></div><div class="card-body" style="padding:0" id="officers-card-body">'+buildOfficersTableHtml(dId,filtered)+'</div></div><div class="card no-print" style="margin-top:1.25rem"><div class="card-header"><div class="card-title">'+t('hierarchyPreview')+'</div></div><div class="card-body">'+buildTreeHTML(dId)+'</div></div>';}
 
-function buildTreeHTML(deptId){const offs=getOffs(deptId);if(!offs.length)return'<div style="color:var(--text-muted)">'+t('noOfficersYet')+'</div>';const zonalRec=getDeptZonalRecord(deptId);const maxLevel=getDeptMaxLevel(deptId);const nonZonalOffs=offs.filter(function(o){return!o.isZonal;});function rowHtml(officer,depth,zone){const isZonalNode=!!officer.isZonal;const displayName=isZonalNode?t('zonalLevelBadge'):officer.name;return'<div class="tree-row'+(depth===0?' top':'')+'"><span class="lbadge '+lvlCls(officer.level)+'">L'+officer.level+'</span><span style="font-weight:600'+(isZonalNode?';font-style:italic;color:var(--text-muted)':'')+'">'+h(displayName)+'</span>'+(!isZonalNode&&officer.mobile?'<span style="color:var(--text-muted);font-size:12px">'+h(officer.mobile)+'</span>':'')+(zone&&officer.level===1?'<span class="badge badge-primary" style="font-size:11px">'+h(zone.zone)+'</span>':'')+(officer.level===1&&officer.wards&&officer.wards.length?'<span style="font-size:11px;color:var(--text-muted)">'+t('wards')+': '+officer.wards.join(',')+'</span>':'')+(isZonalNode?' <span class="badge badge-gold" style="font-size:10px">🏁</span><span style="font-size:11px;color:var(--text-muted)">'+t('treeZonalNote')+'</span>':'')+'</div>';}const l1s=nonZonalOffs.filter(function(o){return o.level===1;});let html='';l1s.forEach(function(l1){const zone=findZoneByWards(l1.wards);let html2='<div class="tree-node">'+rowHtml(l1,0,zone);let currentLevelOffs=[l1],depth=0;for(let lvl=2;lvl<=maxLevel;lvl++){depth++;let nextOffs;if(zonalRec&&lvl===zonalRec.level&&currentLevelOffs.length){nextOffs=[zonalRec];}else{const nextIds=[];currentLevelOffs.forEach(function(o){supIds(o).forEach(function(sid){if(!nextIds.includes(sid))nextIds.push(sid);});});nextOffs=nonZonalOffs.filter(function(o){return nextIds.includes(offId(o));});}nextOffs.forEach(function(o){html2+='<div class="tree-node" style="margin-left:'+(depth*28)+'px">'+rowHtml(o,depth,zone)+'</div>';});currentLevelOffs=nextOffs;if(!nextOffs.length)break;}html2+='</div>';html+=html2;});return html||'<div style="color:var(--text-muted)">'+t('noOfficersYet')+'</div>';}
+function buildTreeHTML(deptId){
+  const offs=getOffs(deptId);
+  if(!offs.length)return'<div class="empty-state"><div class="es-icon">🌳</div><p>'+t('noOfficersYet')+'</p></div>';
+  const zonalRec=getDeptZonalRecord(deptId);
+  const maxLevel=getDeptMaxLevel(deptId);
+  const nonZonalOffs=offs.filter(function(o){return!o.isZonal;});
+  function cardHtml(officer,zone){
+    const isZonalNode=!!officer.isZonal;
+    const levelLabel=getLevelLabel(deptId,officer.level);
+    let displayName,displayMobile,isUnassignedZonal=false;
+    if(isZonalNode){
+      if(zone&&zone.zonalOfficerName){displayName=zone.zonalOfficerName;displayMobile=zone.zonalOfficerMobile||'';}
+      else{displayName=t('noZonalOfficerAssigned');displayMobile='';isUnassignedZonal=true;}
+    }else{displayName=officer.name;displayMobile=officer.mobile||'';}
+    const cardCls='hp-card'+(officer.level===1?' hp-l1':'')+(isZonalNode?' hp-zonal':'');
+    let metaHtml='';
+    if(zone&&officer.level===1)metaHtml+='<span class="hp-meta-chip hp-zone-chip">🗺️ '+h(zone.zone)+'</span>';
+    if(officer.level===1&&officer.wards&&officer.wards.length)metaHtml+='<span class="hp-meta-chip">'+h(t('wards'))+': '+officer.wards.join(', ')+'</span>';
+    if(!isZonalNode&&!isUnassignedZonal&&displayMobile)metaHtml+='<span class="hp-meta-chip">📞 '+h(displayMobile)+'</span>';
+    if(isZonalNode&&!isUnassignedZonal&&displayMobile)metaHtml+='<span class="hp-meta-chip hp-gold-chip">📞 '+h(displayMobile)+'</span>';
+    if(!isZonalNode&&officer.desig)metaHtml+='<span class="hp-meta-chip">'+h(officer.desig)+'</span>';
+    const nameCls='hp-card-name'+(isUnassignedZonal?' hp-muted':'');
+    return'<div class="'+cardCls+'"><div class="hp-card-badge"><span class="lbadge '+lvlCls(officer.level)+'">L'+officer.level+'</span></div><div class="hp-card-body"><div class="hp-card-levelname">'+h(levelLabel)+'</div><div class="'+nameCls+'">'+h(displayName)+'</div>'+(metaHtml?'<div class="hp-card-meta">'+metaHtml+'</div>':'')+'</div>'+(isZonalNode?'<div class="hp-card-flag" title="'+h(t('zonalLevelBadge'))+'">🏁</div>':'')+'</div>';
+  }
+  const l1s=nonZonalOffs.filter(function(o){return o.level===1;});
+  let html='<div class="hp-wrap">';
+  l1s.forEach(function(l1){
+    const zone=findZoneByWards(l1.wards);
+    let chainHtml='<div class="hp-chain"><div class="hp-chain-label"><span>'+(zone?h(zone.zone):h(t('unassigned')))+'</span><span class="hp-chain-line"></span></div><div class="hp-step">'+cardHtml(l1,zone)+'</div>';
+    let currentLevelOffs=[l1];
+    for(let lvl=2;lvl<=maxLevel;lvl++){
+      let nextOffs;
+      if(zonalRec&&lvl===zonalRec.level&&currentLevelOffs.length){nextOffs=[zonalRec];}
+      else{const nextIds=[];currentLevelOffs.forEach(function(o){supIds(o).forEach(function(sid){if(!nextIds.includes(sid))nextIds.push(sid);});});nextOffs=nonZonalOffs.filter(function(o){return nextIds.includes(offId(o));});}
+      nextOffs.forEach(function(o){chainHtml+='<div class="hp-connector"><span class="hp-arrow">↓</span></div><div class="hp-step">'+cardHtml(o,zone)+'</div>';});
+      currentLevelOffs=nextOffs;
+      if(!nextOffs.length)break;
+    }
+    chainHtml+='</div>';
+    html+=chainHtml;
+  });
+  html+='</div>';
+  return html||'<div class="empty-state"><div class="es-icon">🌳</div><p>'+t('noOfficersYet')+'</p></div>';
+}
+
+function deptUsesZoneWards(deptId){
+  return getOffs(deptId).some(function(o){return !o.isZonal&&o.level===1&&o.wards&&o.wards.length>0;});
+}
+
+// ============================================================
+// VIEW REPORT
+// ============================================================
+function rptOfficerCellHTML(officerList,zone,wrap){
+  if(!officerList||!officerList.length)return wrap?'':'<td class="rpt-cell-dash">—</td>';
+  const lines=officerList.map(function(o,idx){
+    let name=o.name,mobile=o.mobile,desig=o.desig;
+    const isZonal=!!o.isZonal;
+    if(isZonal){if(zone&&zone.zonalOfficerName){name=zone.zonalOfficerName;mobile=zone.zonalOfficerMobile||'';}else{name=t('unassigned');mobile='';}desig='';}
+    const sep=(idx>0)?'<div class="rpt-officer-sep"></div>':'';
+    return sep+'<div class="rpt-officer-card'+(isZonal?' rpt-cell-zonal':'')+'">'+'<div class="rpt-officer-name">'+h(name)+'</div>'+(desig?'<div class="rpt-officer-desig">'+h(desig)+'</div>':'')+(mobile?'<div class="rpt-officer-mobile">📞 '+h(mobile)+'</div>':'')+'</div>';
+  }).join('');
+  return wrap?lines:('<td class="rpt-cell-dash">'+lines+'</td>');
+}
+
+function pgReport(){
+  const d=getDept(VIEW.deptId);if(!d)return'';
+  const dId=deptId2(d);
+  const maxLevel=getDeptMaxLevel(dId);
+  const rows=buildReportRows(dId);
+  const useZoneWards=deptUsesZoneWards(dId);
+  const totalCols=(useZoneWards?3:1)+maxLevel;
+  let hdrs='<th style="width:60px;text-align:center">'+t('sno')+'</th>';
+  if(useZoneWards){hdrs+='<th>'+t('zoneNoCol')+'</th><th>'+t('wardNo')+'</th>';}
+  hdrs+='<th>'+h(getLevelLabel(dId,1))+'</th>';
+  for(let i=2;i<=maxLevel;i++)hdrs+='<th>'+h(getLevelLabel(dId,i))+'</th>';
+  let trs='';
+  if(!rows.length){trs='<tr><td colspan="'+totalCols+'" class="rpt-empty"><div class="es-icon">📋</div><p>'+t('noL1Found')+'</p></td></tr>';}
+  else{
+    rows.forEach(function(r){
+      let rowCells='<td class="rpt-cell-sno">'+r.no+'</td>';
+      if(useZoneWards){
+        const zoneCell=r.zone?('<div class="rpt-cell-zone"><div class="rpt-zone-en">'+h(r.zone.zone)+'</div>'+(r.zone.zoneHindi?'<div class="rpt-zone-hi">'+h(r.zone.zoneHindi)+'</div>':'')+'</div>'):('<span style="color:var(--text-muted);font-size:12px">—</span>');
+        const wardCell='<div class="rpt-ward-chips">'+(r.wards||[]).map(function(n){return'<span class="rpt-ward-chip">'+h(n)+'</span>';}).join('')+'</div>';
+        rowCells+='<td class="rpt-cell-zone">'+zoneCell+'</td><td>'+wardCell+'</td>';
+      }
+      rowCells+=rptOfficerCellHTML([r.l1],null,false);
+      r.chains.forEach(function(oList){rowCells+='<td>'+rptOfficerCellHTML(oList,r.zone,true)+'</td>';});
+      trs+='<tr>'+rowCells+'</tr>';
+    });
+  }
+  const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  return deptNav('report')
+    +'<div class="rpt-card">'
+      +'<div class="rpt-card-header"><div class="rpt-icon-wrap">'+d.icon+'</div><div class="rpt-info"><div class="rpt-name-en">'+h(d.name)+'</div>'+(d.hindi?'<div class="rpt-name-hi">'+h(d.hindi)+'</div>':'')+'</div></div>'
+      +'<div class="rpt-toolbar no-print">'
+        +'<div class="rpt-meta"><div class="rpt-title-sm">📋 '+h(d.name)+' — '+t('hierarchyReport')+'</div><div class="rpt-date-badge">📅 '+today+'</div><div class="rpt-date-badge green">'+rows.length+' '+t('l1Officers')+' · L1–L'+maxLevel+'</div></div>'
+        +'<div class="rpt-actions"><button class="rpt-btn rpt-btn-navy rpt-btn-sm" data-export-pdf>'+t('exportPdf')+'</button><button class="rpt-btn rpt-btn-green rpt-btn-sm" data-export-excel>'+t('exportExcel')+'</button></div>'
+      +'</div>'
+      +'<div class="rpt-table-wrap"><table class="rpt-table"><thead><tr>'+hdrs+'</tr></thead><tbody>'+trs+'</tbody></table></div>'
+    +'</div>';
+}
 
 function renderOfficerCell(officerList,zone){if(!officerList||!officerList.length)return'<td style="color:var(--text-light);text-align:center;font-size:18px">—</td>';const lines=officerList.map(function(o){let dispName=o.name,dispMobile=o.mobile,dispDesig=o.desig;if(o.isZonal){if(zone&&zone.zonalOfficerName){dispName=zone.zonalOfficerName;dispMobile=zone.zonalOfficerMobile||'';}else{dispName=t('unassigned');dispMobile='';}dispDesig='';}return'<div style="font-weight:600;font-size:13px">'+h(dispName)+'</div>'+(dispDesig?'<div style="font-size:11px;color:var(--text-muted)">'+h(dispDesig)+'</div>':'')+(dispMobile?'<div style="font-size:11px;color:var(--text-muted);font-family:monospace">'+h(dispMobile)+'</div>':'');});return'<td>'+lines.join('<div style="height:4px;border-top:1px solid rgba(0,0,0,.05);margin:4px 0"></div>')+'</td>';}
 
 function buildReportRows(deptId){const offs=getOffs(deptId),maxLevel=getDeptMaxLevel(deptId),l1s=offs.filter(function(o){return o.level===1;}),rows=[];const zonalRec=getDeptZonalRecord(deptId);l1s.forEach(function(l1,index){const zone=findZoneByWards(l1.wards);const chains=[];let currentLevelOffs=[l1];for(let lvl=2;lvl<=maxLevel;lvl++){let nextOffs;if(zonalRec&&lvl===zonalRec.level&&currentLevelOffs.length){nextOffs=[zonalRec];}else{const nextIds=[];currentLevelOffs.forEach(function(o){supIds(o).forEach(function(sid){if(!nextIds.includes(sid))nextIds.push(sid);});});nextOffs=offs.filter(function(o){return nextIds.includes(offId(o));});}chains.push(nextOffs);currentLevelOffs=nextOffs;}rows.push({no:index+1,zone,wards:l1.wards||[],l1,chains,maxLevel});});return rows;}
 
-function pgReport(){const d=getDept(VIEW.deptId);if(!d)return'';const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));let hdrs='<th>L1</th>';for(let i=2;i<=maxLevel;i++)hdrs+='<th>L'+i+'</th>';let trs='';if(!rows.length){trs='<tr><td colspan="'+(3+maxLevel)+'" style="text-align:center;padding:2.5rem;color:var(--text-muted)">'+t('noL1Found')+'</td></tr>';}else{rows.forEach(function(r){const zoneCellHtml=r.zone?'<div class="zone-name">'+h(r.zone.zone)+'</div>'+(r.zone.zoneHindi?'<div style="font-size:11.5px;color:var(--text-muted)">('+h(r.zone.zoneHindi)+')</div>':''):'<div style="color:var(--gold-dark);font-size:12px">'+t('unassigned')+'</div>';const l1Cell='<td><div style="font-weight:700;font-size:13px">'+h(r.l1.name)+'</div>'+(r.l1.desig?'<div style="font-size:11px;color:var(--text-muted)">'+h(r.l1.desig)+'</div>':'')+(r.l1.mobile?'<div style="font-size:11px;font-family:monospace;color:var(--navy)">'+h(r.l1.mobile)+'</div>':'')+'</td>';let levelCells='';r.chains.forEach(function(oList){levelCells+=renderOfficerCell(oList,r.zone);});trs+='<tr><td style="text-align:center;color:var(--text-muted);font-weight:700">'+r.no+'</td><td>'+zoneCellHtml+'</td><td><div class="ward-chips">'+r.wards.map(function(n){return'<span class="ward-chip">'+h(n)+'</span>';}).join('')+'</div></td>'+l1Cell+levelCells+'</tr>';});}
-  return deptNav('report')+'<div class="card" id="report-card"><div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div><div class="card-title">'+h(d.name)+' — '+t('hierarchyReport')+'</div><div class="card-subtitle">'+t('autoGenNote')+'</div></div><div style="font-size:12px;color:var(--text-muted);font-weight:600">📅 '+new Date().toLocaleDateString('en-IN')+'</div></div><div class="card-body" style="padding:0"><div class="table-wrap"><table class="report-table"><thead><tr><th style="width:50px">'+t('sno')+'</th><th>'+t('zoneNoCol')+'</th><th>'+t('wardNo')+'</th>'+hdrs+'</tr></thead><tbody>'+trs+'</tbody></table></div></div></div>';
-}
-
+// ============================================================
+// SETTINGS PAGE
+// ============================================================
 function pgSettings(){
   return'<div class="page-header"><h1>⚙️ '+t('settings')+'</h1></div>'
-    +'<div class="card"><div class="card-header"><div class="card-title">🔐 '+t('changePassword')+'</div></div><div class="card-body" style="max-width:400px">'
+    // ── Admin Password (unchanged) ───────────────────────────
+    +'<div class="card" style="margin-bottom:1.25rem"><div class="card-header"><div class="card-title">🔐 '+t('changePassword')+'</div></div><div class="card-body" style="max-width:400px">'
     +'<div class="form-group"><label class="form-label">'+t('currentPassword')+'</label><input class="form-control" type="password" id="cp-current" placeholder="••••••••"></div>'
     +'<div class="form-group"><label class="form-label">'+t('newPassword')+'</label><input class="form-control" type="password" id="cp-new" placeholder="••••••••"><div class="form-hint">Minimum 8 characters</div></div>'
     +'<div class="form-group"><label class="form-label">'+t('confirmNewPassword')+'</label><input class="form-control" type="password" id="cp-confirm" placeholder="••••••••"></div>'
     +'<div id="cp-err"></div>'
     +'<button class="btn btn-primary" id="cp-submit">'+t('updatePassword')+'</button>'
+    +'</div></div>'
+    // ── Operator Password ────────────────────────────────────
+    +'<div class="card"><div class="card-header"><div class="card-title">🔐 Change Operator Password</div></div><div class="card-body" style="max-width:400px">'
+    +'<div class="form-group"><label class="form-label">'+t('currentPassword')+'</label><input class="form-control" type="password" id="op-current" placeholder="••••••••"></div>'
+    +'<div class="form-group"><label class="form-label">'+t('newPassword')+'</label><input class="form-control" type="password" id="op-new" placeholder="••••••••"><div class="form-hint">Minimum 8 characters</div></div>'
+    +'<div class="form-group"><label class="form-label">'+t('confirmNewPassword')+'</label><input class="form-control" type="password" id="op-confirm" placeholder="••••••••"></div>'
+    +'<div id="op-err"></div>'
+    +'<button class="btn btn-primary" id="op-submit">Update Operator Password</button>'
     +'</div></div>';
 }
 
-function deptNav(active){let html='<div class="dept-nav no-print"><button class="nav-btn back" data-goto="dept">'+t('back')+'</button><button class="nav-btn'+(active==='officers'?' active':'')+'" data-goto="officers">'+t('officerManagement')+'</button><button class="nav-btn'+(active==='report'?' active':'')+'" data-goto="report">'+t('viewReport')+'</button>';if(active==='report'){html+='<div class="nav-spacer"></div><button class="nav-btn" onclick="window.print()">'+t('print')+'</button><button class="nav-btn" data-export-pdf>'+t('exportPdf')+'</button><button class="nav-btn" data-export-excel>'+t('exportExcel')+'</button>';}return html+'</div>';}
+function deptNav(active){let html='<div class="dept-nav no-print"><button class="nav-btn back" data-goto="dept">'+t('back')+'</button><button class="nav-btn'+(active==='officers'?' active':'')+'" data-goto="officers">'+t('officerManagement')+'</button><button class="nav-btn'+(active==='report'?' active':'')+'" data-goto="report">'+t('viewReport')+'</button>';return html+'</div>';}
 
 // ============================================================
 // MODAL
@@ -628,20 +919,31 @@ async function deleteZone(id){const z=getZoneById(id);if(!z)return;const linkedC
 // ============================================================
 function openAddOff(deptId){openOffModal(deptId,null);}
 function openEditOff(id){const o=getOffById(id);if(o)openOffModal(o.deptId,o);}
+
 function buildOffModalContent(deptId,level,currentSelSupIds,isZonalFlag,existing,cap){
   const supLevel=level+1;
+  const levelRec=getLevelNameRecord(deptId,level);
+  const levelNameEnVal=levelRec?(levelRec.nameEn||''):'';
+  const levelNameHiVal=levelRec?(levelRec.nameHi||''):'';
   const levelFieldHtml='<div class="form-group"><label class="form-label">'+(isZonalFlag?t('zonalOfficerLevelLabel'):t('officerLevelLabel'))+'</label><input type="number" min="1" '+(cap!==null?('max="'+cap+'"'):'')+' class="form-control" id="off-level" value="'+level+'">'+(cap!==null?'<div class="form-hint">'+t('officerLevelHint',{cap:cap})+'</div>':'')+'<div class="field-error" id="off-level-err"></div></div>';
   const isZonalFieldHtml='<div class="form-group"><label class="form-label">'+t('isZonalOfficerLabel')+'</label><select class="form-control" id="off-iszonal"><option value="no"'+(!isZonalFlag?' selected':'')+'>'+t('no')+'</option><option value="yes"'+(isZonalFlag?' selected':'')+'>'+t('yes')+'</option></select>'+(isZonalFlag?'<div class="form-hint">'+t('zonalLevelNote')+'</div>':'')+'</div>';
-  if(isZonalFlag){return levelFieldHtml+isZonalFieldHtml+'<div id="off-err"></div>';}
+  const levelNameFieldsHtml='<div class="form-row"><div class="form-group"><label class="form-label">'+t('levelNameEnLabel')+'</label><input class="form-control" id="off-level-name-en" value="'+h(levelNameEnVal)+'" placeholder="'+h(t('levelNameEnPlaceholder'))+'"><div class="field-error" id="off-level-name-en-err"></div></div><div class="form-group"><label class="form-label">'+t('levelNameHiLabel')+'</label><input class="form-control" id="off-level-name-hi" value="'+h(levelNameHiVal)+'" placeholder="'+h(t('levelNameHiPlaceholder'))+'"></div></div><div class="form-hint" style="margin-top:-.5rem;margin-bottom:1rem">'+t('levelNameHint')+'</div>';
+  if(isZonalFlag){return levelFieldHtml+isZonalFieldHtml+levelNameFieldsHtml+'<div id="off-err"></div>';}
   const nextLevelIsZonal=(cap!==null&&supLevel===cap);
   function supSectionHtml(lvl,selSupIds){const supLvl=lvl+1;const supOffs=getOffs(deptId).filter(function(o){return o.level===supLvl&&(!existing||offId(o)!==offId(existing))&&!o.isZonal;});if(!supOffs.length){return'<div class="alert alert-warn"><span class="alert-icon">⚠️</span>'+t('noSupOfficersFound',{level:supLvl})+'</div>';}let opts='';supOffs.forEach(function(o){opts+='<option value="'+offId(o)+'"'+(selSupIds.includes(offId(o))?' selected':'')+'>'+h(o.name)+(o.desig?' ('+h(o.desig)+')':'')+' — L'+o.level+'</option>';});return'<select class="form-control" id="off-sups" multiple style="min-height:'+(Math.min(supOffs.length,5)*40)+'px">'+opts+'</select><div class="form-hint">'+t('holdCtrlHint')+'</div>';}
-  return levelFieldHtml+isZonalFieldHtml
+
+  // ── CHANGE 3: Designation value — existing officer keeps its own desig,
+  //             new officer gets the saved default for this dept+level.
+  const desigDefaultVal=existing?h(existing.desig||''):h(getDefaultDesig(deptId,level));
+
+  return levelFieldHtml+isZonalFieldHtml+levelNameFieldsHtml
     +'<div class="form-row"><div class="form-group"><label class="form-label">'+t('officerNameLabel')+'</label><input class="form-control" id="off-name" value="'+(existing?h(existing.name||''):'')+'" placeholder="'+h(t('officerNamePlaceholder'))+'"><div class="field-error" id="off-name-err"></div></div><div class="form-group"><label class="form-label">'+t('mobileNumberLabel')+'</label><input class="form-control" id="off-mobile" value="'+(existing?h(existing.mobile||''):'')+'" placeholder="'+h(t('mobileNumberPlaceholder'))+'" maxlength="10" inputmode="numeric"><div class="field-error" id="off-mobile-err"></div></div></div>'
-    +'<div class="form-group"><label class="form-label">'+t('designationLabel')+'</label><input class="form-control" id="off-desig" value="'+(existing?h(existing.desig||''):'')+'" placeholder="'+h(t('designationPlaceholder'))+'"></div>'
-    +'<div id="off-ward-sec" style="display:'+(level===1?'block':'none')+'"><div class="form-group"><label class="form-label">'+t('assignedWardsLabel')+'</label><input class="form-control" id="off-wards" value="'+(existing&&existing.wards?existing.wards.join(','):'')+'" placeholder="'+h(t('wardNumbersPlaceholder'))+'"><div class="form-hint">'+t('assignedWardsHint')+'</div><div class="field-error" id="off-wards-err"></div></div></div>'
+    +'<div class="form-group"><label class="form-label">'+t('designationLabel')+'</label><input class="form-control" id="off-desig" value="'+desigDefaultVal+'" placeholder="'+h(t('designationPlaceholder'))+'"></div>'
+    +'<div id="off-ward-sec" style="display:'+(level===1?'block':'none')+'"><div class="form-group"><label class="form-label">'+t('assignedWardsLabel')+'</label><input class="form-control" id="off-wards" value="'+(existing&&existing.wards?existing.wards.join(','):'')+'" placeholder="'+h(t('wardNumbersPlaceholder'))+'"><div class="form-hint">'+t('assignedWardsHint')+' '+t('wardsAvailableHint')+'</div><div id="off-wards-taken-hint"></div><div class="field-error" id="off-wards-err"></div></div></div>'
     +(nextLevelIsZonal?'<div class="alert alert-info" id="off-sup-wrap"><span class="alert-icon">🏁</span>'+t('zonalAutoReportNote',{level:supLevel})+'</div>':'<div class="form-group" id="off-sup-wrap"><label class="form-label" id="sup-label">'+t('reportsToLabel')+' <span style="font-size:11.5px;color:var(--text-muted);font-weight:400">(L'+supLevel+' '+t('officersOnly')+')</span></label><div id="off-sup-sec">'+supSectionHtml(level,currentSelSupIds)+'</div></div>')
     +'<div id="off-err"></div>';
 }
+
 function openOffModal(deptId,existing){
   const isEdit=!!existing,selLevel=existing?existing.level:1,selSupIds=existing?supIds(existing):[],selIsZonal=existing?!!existing.isZonal:false;
   const cap=getDeptZonalCapLevel(deptId,existing?offId(existing):null);
@@ -653,47 +955,250 @@ function openOffModal(deptId,existing){
   ]);
   wireOffModalInputs(deptId,existing,cap);
 }
+
+function renderWardsTakenHint(deptId,excludeOffId,rawValue){
+  const hintEl=document.getElementById('off-wards-taken-hint');
+  if(!hintEl)return;
+  const wards=parseWardsInput(rawValue);
+  if(!wards.length){hintEl.innerHTML='';return;}
+  const check=validateWardUniqueness(deptId,wards,excludeOffId);
+  if(check.ok){hintEl.innerHTML='';return;}
+  const d=getDept(deptId);
+  hintEl.innerHTML='<div class="alert alert-warn" style="margin-top:.4rem;margin-bottom:0"><span class="alert-icon">⚠️</span><span>'+t('valWardsDuplicateInDept',{dept:h(d?d.name:'')})+' <strong>'+check.dupWards.map(h).join(', ')+'</strong>. '+t('valWardsSelectDifferent')+'</span></div>';
+}
+
 function wireOffModalInputs(deptId,existing,cap){
-  const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),wardsEl0=document.getElementById('off-wards'),levelInput=document.getElementById('off-level'),isZonalSel=document.getElementById('off-iszonal');
+  const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),wardsEl0=document.getElementById('off-wards'),levelInput=document.getElementById('off-level'),isZonalSel=document.getElementById('off-iszonal'),levelNameEnEl=document.getElementById('off-level-name-en'),levelNameHiEl=document.getElementById('off-level-name-hi');
   constrainNameInput(nameEl);constrainMobileInput(mobileEl);
   if(nameEl)nameEl.addEventListener('input',function(){if(!this.value.trim()||Validate.isValidName(this.value))clearFieldError(this,'off-name-err');else setFieldError(this,'off-name-err',t('valNameLettersOnly'));});
   if(mobileEl)mobileEl.addEventListener('input',function(){if(!this.value.trim()||Validate.isValidMobile(this.value))clearFieldError(this,'off-mobile-err');else setFieldError(this,'off-mobile-err',t('valMobileExact10'));});
-  if(wardsEl0)wardsEl0.addEventListener('input',function(){if(Validate.isValidWardsRaw(this.value))clearFieldError(this,'off-wards-err');else setFieldError(this,'off-wards-err',t('valWardsInvalid'));});
-  function rerenderBody(){const newLevel=parseInt(levelInput.value)||1;const isZonalNow=isZonalSel.value==='yes';const selSupIds=(!isZonalNow&&document.getElementById('off-sups'))?Array.from(document.getElementById('off-sups').selectedOptions).map(function(o){return o.value;}):(existing?supIds(existing):[]);document.getElementById('modal-title').innerHTML=isZonalNow?'🏁 '+(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?'✏️ '+t('editOfficer'):'👤 '+t('addOfficerModalTitle'));document.getElementById('modal-body').innerHTML=buildOffModalContent(deptId,newLevel,selSupIds,isZonalNow,existing,cap);const mfb1=document.getElementById('mfb1');if(mfb1)mfb1.textContent=isZonalNow?(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?t('updateOfficer'):t('addOfficerBtn'));wireOffModalInputs(deptId,existing,cap);}
-  if(levelInput)levelInput.addEventListener('change',rerenderBody);if(isZonalSel)isZonalSel.addEventListener('change',rerenderBody);
-}
-async function saveOff(deptId,editId){
-  const levelInput=document.getElementById('off-level');const isZonal=document.getElementById('off-iszonal').value==='yes';const errEl=document.getElementById('off-err');errEl.innerHTML='';clearFieldError(levelInput,'off-level-err');let hasError=false;
-  const level=parseInt(levelInput.value,10);if(isNaN(level)||level<1){setFieldError(levelInput,'off-level-err',t('errLevelInvalid'));hasError=true;}
-  const cap=getDeptZonalCapLevel(deptId,editId);if(!hasError&&cap!==null&&level>cap){setFieldError(levelInput,'off-level-err',t('errLevelExceedsCap',{cap:cap}));hasError=true;}
-  if(!hasError&&isZonal){const higherExists=getOffs(deptId).some(function(o){return offId(o)!==editId&&o.level>level;});if(higherExists){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('errZonalHigherExists')+'</div>';return;}}
-  if(hasError){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>';return;}
-  let body;
-  if(isZonal){body={deptId,level,name:'',mobile:'',desig:'',wards:[],supIds:[],isZonal:true};}
-  else{
-    const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),desigEl=document.getElementById('off-desig');const name=Validate.sanitizeText(nameEl.value),mobile=Validate.sanitizeText(mobileEl.value),desig=Validate.sanitizeText(desigEl.value);const wardsEl=document.getElementById('off-wards');clearFieldError(nameEl,'off-name-err');clearFieldError(mobileEl,'off-mobile-err');if(wardsEl)clearFieldError(wardsEl,'off-wards-err');hasError=false;const wardsRaw=wardsEl?wardsEl.value.trim():'';const wards=(level===1&&wardsEl)?wardsRaw.split(',').map(function(x){return x.trim();}).filter(Boolean):[];if(!name){setFieldError(nameEl,'off-name-err',t('officerNameRequired'));hasError=true;}else if(!Validate.isValidName(name)){setFieldError(nameEl,'off-name-err',t('valNameLettersOnly'));hasError=true;}if(mobile&&!Validate.isValidMobile(mobile)){setFieldError(mobileEl,'off-mobile-err',t('valMobileExact10'));hasError=true;}if(wardsEl&&wardsRaw&&!Validate.isValidWardsRaw(wardsRaw)){setFieldError(wardsEl,'off-wards-err',t('valWardsInvalid'));hasError=true;}if(hasError){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>';return;}const supSel=document.getElementById('off-sups');const finalSupIds=supSel?Array.from(supSel.selectedOptions).map(function(o){return o.value;}).filter(Boolean):[];
-    body={deptId,level,name,mobile,desig,wards,supIds:finalSupIds,isZonal:false};
+  if(wardsEl0)wardsEl0.addEventListener('input',function(){if(Validate.isValidWardsRaw(this.value))clearFieldError(this,'off-wards-err');else setFieldError(this,'off-wards-err',t('valWardsInvalid'));renderWardsTakenHint(deptId,existing?offId(existing):null,this.value);});
+  if(wardsEl0)renderWardsTakenHint(deptId,existing?offId(existing):null,wardsEl0.value);
+  if(levelNameEnEl)levelNameEnEl.addEventListener('input',function(){if(this.value.trim())clearFieldError(this,'off-level-name-en-err');});
+  function syncLevelNameFieldsFromState(lvl){
+    const rec=getLevelNameRecord(deptId,lvl);
+    if(levelNameEnEl)levelNameEnEl.value=rec?(rec.nameEn||''):'';
+    if(levelNameHiEl)levelNameHiEl.value=rec?(rec.nameHi||''):'';
+    if(levelNameEnEl)clearFieldError(levelNameEnEl,'off-level-name-en-err');
   }
-  setStatus(t('saving'),'saving');
-  let result;if(editId){result=await apiPut('/officers/'+editId,body);}else{result=await apiPost('/officers',body);}
-  if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';setStatus(t('ready'),'');return;}
-  await loadAllData();showSaved();closeModal();go('officers',deptId);
+  function rerenderBody(){
+    const newLevel=parseInt(levelInput.value)||1;
+    const isZonalNow=isZonalSel.value==='yes';
+    const selSupIds=(!isZonalNow&&document.getElementById('off-sups'))?Array.from(document.getElementById('off-sups').selectedOptions).map(function(o){return o.value;}):(existing?supIds(existing):[]);
+    document.getElementById('modal-title').innerHTML=isZonalNow?'🏁 '+(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?'✏️ '+t('editOfficer'):'👤 '+t('addOfficerModalTitle'));
+    document.getElementById('modal-body').innerHTML=buildOffModalContent(deptId,newLevel,selSupIds,isZonalNow,existing,cap);
+    const mfb1=document.getElementById('mfb1');if(mfb1)mfb1.textContent=isZonalNow?(existing?t('updateZonalLevelBtn'):t('addZonalLevelBtn')):(existing?t('updateOfficer'):t('addOfficerBtn'));
+    wireOffModalInputs(deptId,existing,cap);
+  }
+  if(levelInput)levelInput.addEventListener('change',function(){syncLevelNameFieldsFromState(parseInt(this.value)||1);rerenderBody();});
+  if(isZonalSel)isZonalSel.addEventListener('change',rerenderBody);
 }
+
+async function saveOff(deptId,editId){
+  const errEl=document.getElementById('off-err');
+  function showErr(html){if(errEl){errEl.innerHTML=html;}else{alert(html.replace(/<[^>]*>/g,'').trim()||'Something went wrong. Please reopen the form and try again.');}}
+  try{
+    const levelInput=document.getElementById('off-level');
+    const isZonalEl=document.getElementById('off-iszonal');
+    if(!levelInput||!isZonalEl){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>');setStatus(t('ready'),'');return;}
+    const isZonal=isZonalEl.value==='yes';
+    if(errEl)errEl.innerHTML='';
+    clearFieldError(levelInput,'off-level-err');let hasError=false;
+    const level=parseInt(levelInput.value,10);if(isNaN(level)||level<1){setFieldError(levelInput,'off-level-err',t('errLevelInvalid'));hasError=true;}
+    const cap=getDeptZonalCapLevel(deptId,editId);if(!hasError&&cap!==null&&level>cap){setFieldError(levelInput,'off-level-err',t('errLevelExceedsCap',{cap:cap}));hasError=true;}
+    if(!hasError&&isZonal){const higherExists=getOffs(deptId).some(function(o){return offId(o)!==editId&&o.level>level;});if(higherExists){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('errZonalHigherExists')+'</div>');return;}}
+    if(hasError){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>');return;}
+
+    const levelNameEnEl=document.getElementById('off-level-name-en'),levelNameHiEl=document.getElementById('off-level-name-hi');
+    const levelNameEn=levelNameEnEl?Validate.sanitizeText(levelNameEnEl.value):'';
+    const levelNameHi=levelNameHiEl?Validate.sanitizeText(levelNameHiEl.value):'';
+    if(levelNameEnEl){
+      clearFieldError(levelNameEnEl,'off-level-name-en-err');
+      if(!levelNameEn){setFieldError(levelNameEnEl,'off-level-name-en-err',t('levelNameRequired'));showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>');return;}
+    }
+
+    let body;
+    if(isZonal){body={deptId,level,name:'',mobile:'',desig:'',wards:[],supIds:[],isZonal:true};}
+    else{
+      const nameEl=document.getElementById('off-name'),mobileEl=document.getElementById('off-mobile'),desigEl=document.getElementById('off-desig');
+      if(!nameEl||!mobileEl||!desigEl){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>');return;}
+      const name=Validate.sanitizeText(nameEl.value),mobile=Validate.sanitizeText(mobileEl.value),desig=Validate.sanitizeText(desigEl.value);
+      const wardsEl=document.getElementById('off-wards');clearFieldError(nameEl,'off-name-err');clearFieldError(mobileEl,'off-mobile-err');if(wardsEl)clearFieldError(wardsEl,'off-wards-err');hasError=false;
+      const wardsRaw=wardsEl?wardsEl.value.trim():'';const wards=(level===1&&wardsEl)?parseWardsInput(wardsRaw):[];
+      if(!name){setFieldError(nameEl,'off-name-err',t('officerNameRequired'));hasError=true;}else if(!Validate.isValidName(name)){setFieldError(nameEl,'off-name-err',t('valNameLettersOnly'));hasError=true;}
+      if(mobile&&!Validate.isValidMobile(mobile)){setFieldError(mobileEl,'off-mobile-err',t('valMobileExact10'));hasError=true;}
+      if(wardsEl&&wardsRaw&&!Validate.isValidWardsRaw(wardsRaw)){setFieldError(wardsEl,'off-wards-err',t('valWardsInvalid'));hasError=true;}
+      if(hasError){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valFixErrors')+'</div>');return;}
+      if(wards.length){
+        const wardCheck=validateWardUniqueness(deptId,wards,editId);
+        if(!wardCheck.ok){
+          const dNameForErr=getDept(deptId);
+          if(wardsEl)setFieldError(wardsEl,'off-wards-err',t('valWardsDuplicateInDept',{dept:dNameForErr?dNameForErr.name:''})+' '+wardCheck.dupWards.join(', '));
+          showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('valWardsDuplicateInDept',{dept:dNameForErr?dNameForErr.name:''})+' <strong>'+wardCheck.dupWards.map(h).join(', ')+'</strong>. '+t('valWardsSelectDifferent')+'</div>');
+          return;
+        }
+      }
+      const supSel=document.getElementById('off-sups');const finalSupIds=supSel?Array.from(supSel.selectedOptions).map(function(o){return o.value;}).filter(Boolean):[];
+      body={deptId,level,name,mobile,desig,wards,supIds:finalSupIds,isZonal:false};
+    }
+
+    setStatus(t('saving'),'saving');
+    let result;if(editId){result=await apiPut('/officers/'+editId,body);}else{result=await apiPost('/officers',body);}
+    if(result&&result.error){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>');setStatus(t('ready'),'');return;}
+
+    // ── CHANGE 4: Save defaultDesig alongside levelName ───────
+    // Capture whatever is in the desig field as the new default for
+    // this dept+level. Zonal officers have no designation to save.
+    if(levelNameEnEl){
+      const desigEl=document.getElementById('off-desig');
+      const desigForDefault=isZonal?'':(desigEl?Validate.sanitizeText(desigEl.value):'');
+      const lnResult=await saveLevelName(deptId,level,levelNameEn,levelNameHi,desigForDefault);
+      if(lnResult&&lnResult.error){showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(lnResult.error)+'</div>');setStatus(t('ready'),'');return;}
+    }
+
+    await loadAllData();showSaved();closeModal();go('officers',deptId);
+  }catch(err){
+    console.error('saveOff failed:',err);
+    setStatus(t('ready'),'');
+    showErr('<div class="alert alert-danger"><span class="alert-icon">⚠️</span>Something went wrong while saving. Please try again.</div>');
+  }
+}
+
 async function deleteOff(id){if(!confirm(t('deleteOfficerConfirm')))return;setStatus(t('saving'),'saving');await apiDel('/officers/'+id);await loadAllData();showSaved();go('officers',VIEW.deptId);}
 
 // ============================================================
 // DEPT CRUD
 // ============================================================
 function openAddDept(){showModal('🏢 '+t('addNewDepartmentTitle'),'<div class="form-group"><label class="form-label">'+t('deptNameEnLabel')+'</label><input class="form-control" id="d-name" placeholder="'+h(t('deptNameEnPlaceholder'))+'"></div><div class="form-group"><label class="form-label">'+t('deptHindiLabel')+'</label><input class="form-control" id="d-hindi" placeholder="'+h(t('deptHindiPlaceholder'))+'"></div><div class="form-group"><label class="form-label">'+t('deptIconLabel')+'</label><input class="form-control" id="d-icon" placeholder="🏢" maxlength="4"></div><div id="d-err"></div>',[{label:t('cancel'),cls:'btn-secondary',fn:closeModal},{label:t('addDepartmentBtn'),cls:'btn-primary',fn:async function(){const name=document.getElementById('d-name').value.trim();const hindi=document.getElementById('d-hindi').value.trim();const icon=document.getElementById('d-icon').value.trim()||'🏢';if(!name){document.getElementById('d-err').innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('nameRequired')+'</div>';return;}setStatus(t('saving'),'saving');const result=await apiPost('/departments',{name,hindi,icon});if(result&&result.error){document.getElementById('d-err').innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';setStatus(t('ready'),'');return;}await loadAllData();showSaved();closeModal();go('home');}}]);}
-
 async function deleteDept(id){if(!confirm(t('deleteDeptConfirm')))return;setStatus(t('saving'),'saving');await apiDel('/departments/'+id);await loadAllData();showSaved();go('home');}
 
 // ============================================================
-// PDF / EXCEL EXPORT
+// PDF EXPORT
 // ============================================================
-function exportPDF(){const d=getDept(VIEW.deptId);if(!d)return;try{const jsPDF=window.jspdf.jsPDF;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(d.name+' — '+t('hierarchyReport'),14,15);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Generated: '+new Date().toLocaleDateString('en-IN'),14,22);const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));function fmtList(list,zone){if(!list||!list.length)return'—';return list.map(function(o){let dn=o.name,dd=o.desig;if(o.isZonal){if(zone&&zone.zonalOfficerName){dn=zone.zonalOfficerName;}else{dn=t('unassigned');}dd='';}return dn+(dd?'\n'+dd:'');}).join('\n\n');}const head=[t('sno'),t('zoneNoCol'),t('wardNo'),'L1'];for(let i=2;i<=maxLevel;i++)head.push('L'+i);const body=rows.map(function(r){const zoneLabel=r.zone?(r.zone.zone+(r.zone.zoneHindi?' ('+r.zone.zoneHindi+')':'')):t('unassigned');const rowArr=[String(r.no),zoneLabel,r.wards.join(', '),r.l1.name+(r.l1.desig?'\n'+r.l1.desig:'')];r.chains.forEach(function(oList){rowArr.push(fmtList(oList,r.zone));});return rowArr;});doc.autoTable({head:[head],body,startY:28,styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[10,35,66],textColor:[255,255,255],fontStyle:'bold'},alternateRowStyles:{fillColor:[240,246,255]},columnStyles:{0:{cellWidth:12},1:{cellWidth:36},2:{cellWidth:44}}});doc.save(d.name.replace(/\s+/g,'_')+'_Report.pdf');}catch(e){window.print();}}
+function fmtOfficerBlockForPrint(list,zone){
+  if(!list||!list.length)return'<span class="dash">—</span>';
+  return list.map(function(o){
+    let dn=o.name,dd=o.desig,dm=o.mobile;
+    if(o.isZonal){dn=(zone&&zone.zonalOfficerName)?zone.zonalOfficerName:t('unassigned');dm=(zone&&zone.zonalOfficerMobile)?zone.zonalOfficerMobile:'';dd='';}
+    return'<div class="officer-block"><div class="o-name">'+h(dn)+'</div>'+(dd?'<div class="o-desig">'+h(dd)+'</div>':'')+(dm?'<div class="o-mobile">📞 '+h(dm)+'</div>':'')+'</div>';
+  }).join('<div class="o-sep"></div>');
+}
 
-function exportExcel(){const d=getDept(VIEW.deptId);if(!d)return;try{const maxLevel=getDeptMaxLevel(deptId2(d));const rows=buildReportRows(deptId2(d));function fmtCell(list,zone){if(!list||!list.length)return'—';return list.map(function(o){let dn=o.name,dd=o.desig,dm=o.mobile;if(o.isZonal){if(zone&&zone.zonalOfficerName){dn=zone.zonalOfficerName;dm=zone.zonalOfficerMobile||'';}else{dn=t('unassigned');dm='';}dd='';}let l=dn;if(dd)l+=' ('+dd+')';if(dm)l+=' ['+dm+']';return l;}).join('\n');}function fmtL1(o){let l=o.name;if(o.desig)l+=' ('+o.desig+')';if(o.mobile)l+=' ['+o.mobile+']';return l;}const headers=[t('sno'),t('zoneNoCol'),t('wardNo'),'L1'];for(let i=2;i<=maxLevel;i++)headers.push('L'+i);const dataRows=rows.map(function(r){const zoneLabel=r.zone?(r.zone.zone+(r.zone.zoneHindi?' ('+r.zone.zoneHindi+')':'')):t('unassigned');const rowArr=[r.no,zoneLabel,r.wards.join(', '),fmtL1(r.l1)];r.chains.forEach(function(oList){rowArr.push(fmtCell(oList,r.zone));});return rowArr;});const ws=XLSX.utils.aoa_to_sheet([headers].concat(dataRows));ws['!cols']=headers.map(function(_,i){return i===0?{wch:8}:{wch:26};});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,t('hierarchyReport').slice(0,31)||'Report');XLSX.writeFile(wb,(d.name||'Department').replace(/\s+/g,'_')+'_Report.xlsx');}catch(e){alert('Excel export failed.');}}
+function buildPrintableReportHTML(deptId){
+  const d=getDept(deptId);if(!d)return null;
+  const deptDisplayName=d.name,deptDisplayHindi=d.hindi||'';
+  const maxLevel=getDeptMaxLevel(deptId);
+  const rows=buildReportRows(deptId);
+  const useZoneWardsPrint=deptUsesZoneWards(deptId);
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const timeStr=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  let headCols='<th class="col-sno">'+h(t('sno'))+'</th>';
+  if(useZoneWardsPrint){headCols+='<th class="col-zone">'+h(t('zoneNoCol'))+'</th><th class="col-wards">'+h(t('wardNo'))+'</th>';}
+  headCols+='<th class="col-l">'+h(getLevelLabel(deptId,1))+'</th>';
+  for(let i=2;i<=maxLevel;i++)headCols+='<th class="col-l">'+h(getLevelLabel(deptId,i))+'</th>';
+  const totalCols=(useZoneWardsPrint?3:1)+maxLevel;
+  let bodyRows='';
+  if(!rows.length){bodyRows='<tr><td colspan="'+totalCols+'" class="empty-cell">'+h(t('noL1Found'))+'</td></tr>';}
+  else{
+    rows.forEach(function(r){
+      let cells='<td class="cell-sno">'+r.no+'</td>';
+      if(useZoneWardsPrint){
+        const zoneHtml=r.zone?'<div class="zone-en">'+h(r.zone.zone)+'</div>'+(r.zone.zoneHindi?'<div class="zone-hi">'+h(r.zone.zoneHindi)+'</div>':''):'<span class="dash">'+h(t('unassigned'))+'</span>';
+        const wardsHtml=(r.wards||[]).map(function(w){return'<span class="ward-chip">'+h(w)+'</span>';}).join(' ');
+        cells+='<td class="cell-zone">'+zoneHtml+'</td><td class="cell-wards">'+(wardsHtml||'<span class="dash">—</span>')+'</td>';
+      }
+      cells+='<td class="cell-off">'+fmtOfficerBlockForPrint([r.l1],r.zone)+'</td>';
+      r.chains.forEach(function(oList){cells+='<td class="cell-off">'+fmtOfficerBlockForPrint(oList,r.zone)+'</td>';});
+      bodyRows+='<tr>'+cells+'</tr>';
+    });
+  }
+  return'<!DOCTYPE html><html lang="'+CURRENT_LANG+'"><head><meta charset="UTF-8"><title>'+h(deptDisplayName.replace(/\s+/g,'_'))+'_Report</title>'
+    +'<link rel="preconnect" href="https://fonts.googleapis.com">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
+    +'<style>'
+    +'@page{size:A4 landscape;margin:12mm 10mm 14mm}'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'html,body{font-family:"Inter","Noto Sans Devanagari",Arial,sans-serif;color:#1A1E2E;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'.report-header{display:flex;align-items:center;gap:16px;border-bottom:3px solid #E8872B;padding-bottom:10px;margin-bottom:12px}'
+    +'.logo-space{width:56px;height:56px;border:2px solid #0A2342;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;background:#F5F6FA}'
+    +'.header-titles{flex:1}.header-org{font-size:18px;font-weight:800;color:#0A2342;letter-spacing:.2px}'
+    +'.header-org-hi{font-size:13px;font-weight:600;color:#0A2342;opacity:.8;margin-top:1px}'
+    +'.header-sys{font-size:11.5px;color:#555;text-transform:uppercase;letter-spacing:.6px;margin-top:3px}'
+    +'.header-dept-line{font-size:14px;font-weight:700;color:#E8872B;margin-top:6px}'
+    +'.header-right{text-align:right;font-size:11px;color:#555;flex-shrink:0}'
+    +'.header-right .gen-label{font-weight:700;color:#0A2342}'
+    +'.meta-strip{display:flex;justify-content:space-between;align-items:center;background:#F5F6FA;border:1px solid #E0E4EE;border-radius:6px;padding:6px 12px;font-size:11px;color:#333;margin-bottom:12px}'
+    +'.meta-strip b{color:#0A2342}'
+    +'table{width:100%;border-collapse:collapse;table-layout:fixed;border:2px solid #0A2342}'
+    +'thead{display:table-header-group}tfoot{display:table-footer-group}tr{page-break-inside:avoid}'
+    +'th,td{border:1px solid #0A2342;padding:7px 6px;font-size:10.5px;text-align:center;vertical-align:middle;word-wrap:break-word;line-height:1.35}'
+    +'thead th{background:#072A57;color:#FFFFFF;font-weight:700;text-transform:uppercase;letter-spacing:.3px;font-size:10px}'
+    +'tbody tr:nth-child(even) td{background:#F2F6FC}tbody tr:nth-child(odd) td{background:#FFFFFF}'
+    +'.col-sno{width:6%}.col-zone{width:11%}.col-wards{width:15%}.col-l{width:auto}'
+    +'.cell-sno{font-weight:700;color:#444}'
+    +'.zone-en{font-weight:700;color:#0A2342}.zone-hi{font-size:9px;color:#666;margin-top:1px}'
+    +'.ward-chip{display:inline-block;background:#EEF3FF;border:1px solid #C9D4ED;border-radius:4px;padding:1px 6px;margin:1.5px;font-size:9px;font-weight:600;color:#0A2342}'
+    +'.officer-block{padding:2px 0}.o-name{font-weight:700;color:#0A2342;font-size:10.5px}'
+    +'.o-desig{font-size:9px;color:#666;margin-top:1px;font-style:italic}'
+    +'.o-mobile{font-size:9px;color:#0A2342;margin-top:1px;font-family:monospace}'
+    +'.o-sep{height:1px;background:#D6DCE9;margin:4px 2px}.dash{color:#999}'
+    +'.empty-cell{padding:30px;color:#555;font-size:12.5px;font-weight:600}'
+    +'.report-footer{margin-top:12px;font-size:9.5px;color:#777;text-align:center;border-top:1px solid #ccc;padding-top:7px}'
+    +'.page-footer-note{font-size:9px;color:#999;text-align:center;margin-top:3px}'
+    +'@media print{.no-print{display:none!important}}'
+    +'</style></head><body>'
+    +'<div class="report-header"><div class="logo-space">🏛️</div>'
+    +'<div class="header-titles"><div class="header-org">'+h(t('appTitle'))+'</div><div class="header-org-hi">'+h(I18N.hi.appTitle)+'</div><div class="header-sys">'+h(t('appSubtitle'))+'</div>'
+    +'<div class="header-dept-line">'+h(deptDisplayName)+(deptDisplayHindi?' / '+h(deptDisplayHindi):'')+' — '+h(t('hierarchyReport'))+'</div></div>'
+    +'<div class="header-right"><div class="gen-label">'+h(CURRENT_LANG==='hi'?'जनरेट किया गया':'Generated')+'</div><div>'+h(dateStr)+'</div><div>'+h(timeStr)+'</div></div></div>'
+    +'<div class="meta-strip"><span>'+h(t('name'))+': <b>'+h(deptDisplayName)+'</b></span><span>'+h(t('level'))+': <b>L1 – L'+maxLevel+'</b></span><span>'+h(t('l1Officers'))+': <b>'+rows.length+'</b></span></div>'
+    +'<table><thead><tr>'+headCols+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'
+    +'<div class="report-footer">Government of Uttar Pradesh &nbsp;|&nbsp; Jhansi Nagar Nigam &nbsp;|&nbsp; Smart Municipal HMS &nbsp;|&nbsp; Confidential — Official Use Only</div>'
+    +'<div class="page-footer-note">This is a system-generated hierarchy report.</div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250);};<\/script>'
+    +'</body></html>';
+}
+
+function exportPDF(){
+  const d=getDept(VIEW.deptId);if(!d)return;
+  const html=buildPrintableReportHTML(deptId2(d));if(!html)return;
+  const existing=document.getElementById('hms-print-frame');if(existing)existing.remove();
+  const iframe=document.createElement('iframe');
+  iframe.id='hms-print-frame';iframe.setAttribute('aria-hidden','true');
+  iframe.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+  const doc=iframe.contentWindow.document;doc.open();doc.write(html);doc.close();
+  setTimeout(function(){const f=document.getElementById('hms-print-frame');if(f)f.remove();},20000);
+}
+
+function exportExcel(){
+  const d=getDept(VIEW.deptId);if(!d)return;
+  try{
+    const dId=deptId2(d);
+    const maxLevel=getDeptMaxLevel(dId);
+    const rows=buildReportRows(dId);
+    const useZoneWardsXls=deptUsesZoneWards(dId);
+    function fmtCell(list,zone){if(!list||!list.length)return'—';return list.map(function(o){let dn=o.name,dd=o.desig,dm=o.mobile;if(o.isZonal){if(zone&&zone.zonalOfficerName){dn=zone.zonalOfficerName;dm=zone.zonalOfficerMobile||'';}else{dn=t('unassigned');dm='';}dd='';}let l=dn;if(dd)l+=' ('+dd+')';if(dm)l+=' ['+dm+']';return l;}).join('\n');}
+    function fmtL1(o){let l=o.name;if(o.desig)l+=' ('+o.desig+')';if(o.mobile)l+=' ['+o.mobile+']';return l;}
+    const headers=[t('sno')];
+    if(useZoneWardsXls){headers.push(t('zoneNoCol'),t('wardNo'));}
+    headers.push(getLevelLabel(dId,1));
+    for(let i=2;i<=maxLevel;i++)headers.push(getLevelLabel(dId,i));
+    const dataRows=rows.map(function(r){
+      const rowArr=[r.no];
+      if(useZoneWardsXls){const zoneLabel=r.zone?(r.zone.zone+(r.zone.zoneHindi?' ('+r.zone.zoneHindi+')':'')):t('unassigned');rowArr.push(zoneLabel,r.wards.join(', '));}
+      rowArr.push(fmtL1(r.l1));
+      r.chains.forEach(function(oList){rowArr.push(fmtCell(oList,r.zone));});
+      return rowArr;
+    });
+    const ws=XLSX.utils.aoa_to_sheet([headers].concat(dataRows));
+    ws['!cols']=headers.map(function(_,i){return i===0?{wch:8}:{wch:26};});
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,t('hierarchyReport').slice(0,31)||'Report');
+    XLSX.writeFile(wb,(d.name||'Department').replace(/\s+/g,'_')+'_Report.xlsx');
+  }catch(e){alert('Excel export failed.');}
+}
 
 // ============================================================
 // LOGIN
@@ -704,16 +1209,27 @@ async function doLogin(){
   if(!username){setFieldError(document.getElementById('lp-username'),'lp-un-err','Username is required.');return;}
   if(!password){setFieldError(document.getElementById('lp-password'),'lp-pw-err','Password is required.');return;}
   btn.disabled=true;document.getElementById('lp-btn-text').textContent='Logging in...';
-  try{const resp=await fetch(API_BASE+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});const data=await resp.json();if(!resp.ok||data.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">🔒</span>'+(data.error||'Login failed.')+'</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');return;}setToken(data.token);document.getElementById('admin-username-badge').textContent=data.username||'Admin';showApp();}catch(e){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>Server unreachable.</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');}
+  try{
+    const resp=await fetch(API_BASE+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const data=await resp.json();
+    if(!resp.ok||data.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">🔒</span>'+(data.error||'Login failed.')+'</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');return;}
+    setToken(data.token);document.getElementById('admin-username-badge').textContent=data.username||'Admin';showApp();
+  }catch(e){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>Server unreachable.</div>';btn.disabled=false;document.getElementById('lp-btn-text').textContent=t('loginBtn');}
 }
-function doLogout(){clearToken();showLogin();}
-function showLogin(){document.getElementById('login-page').style.display='';document.getElementById('app').style.display='none';document.getElementById('lp-username').value='';document.getElementById('lp-password').value='';document.getElementById('lp-err').innerHTML='';}
-async function showApp(){document.getElementById('login-page').style.display='none';document.getElementById('app').style.display='flex';document.getElementById('main').innerHTML='<div class="loading"><div class="spinner"></div> '+t('loadingData')+'</div>';await loadAllData();render();}
+function doLogout(){clearToken();window.location.href='/';}
+function showLogin(){window.location.href='/';}
+async function showApp(){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('main').innerHTML='<div class="loading"><div class="spinner"></div> '+t('loadingData')+'</div>';
+  await loadAllData();render();
+}
 
 // ============================================================
 // BIND
 // ============================================================
-function refreshOfficersTable(){const d=getDept(VIEW.deptId);if(!d)return;const filtered=filterOfficers(getOffs(deptId2(d)));const cardBody=document.getElementById('officers-card-body');if(!cardBody)return;cardBody.innerHTML=buildOfficersTableHtml(filtered);cardBody.querySelectorAll('[data-edit-off]').forEach(function(el){el.addEventListener('click',function(){openEditOff(el.getAttribute('data-edit-off'));});});cardBody.querySelectorAll('[data-del-off]').forEach(function(el){el.addEventListener('click',function(){deleteOff(el.getAttribute('data-del-off'));});});}
+function refreshOfficersTable(){const d=getDept(VIEW.deptId);if(!d)return;const dId=deptId2(d);const filtered=filterOfficers(getOffs(dId));const cardBody=document.getElementById('officers-card-body');if(!cardBody)return;cardBody.innerHTML=buildOfficersTableHtml(dId,filtered);cardBody.querySelectorAll('[data-edit-off]').forEach(function(el){el.addEventListener('click',function(){openEditOff(el.getAttribute('data-edit-off'));});});cardBody.querySelectorAll('[data-del-off]').forEach(function(el){el.addEventListener('click',function(){deleteOff(el.getAttribute('data-del-off'));});});}
+
 function bind(){
   var zmBtn=document.getElementById('btn-zone-master');if(zmBtn)zmBtn.addEventListener('click',function(){go('zonemaster');});
   document.querySelectorAll('[data-goto-dept]').forEach(function(el){el.addEventListener('click',function(e){if(e.target.closest('[data-del-dept]'))return;go('dept',el.getAttribute('data-goto-dept'));});});
@@ -731,8 +1247,76 @@ function bind(){
   var s=document.getElementById('off-search');if(s){s.addEventListener('input',function(){_search=this.value;refreshOfficersTable();});}
   document.querySelectorAll('[data-export-pdf]').forEach(function(el){el.addEventListener('click',exportPDF);});
   document.querySelectorAll('[data-export-excel]').forEach(function(el){el.addEventListener('click',exportExcel);});
-  // Settings page bindings
-  var cpBtn=document.getElementById('cp-submit');if(cpBtn){cpBtn.addEventListener('click',async function(){const cur=document.getElementById('cp-current').value;const nw=document.getElementById('cp-new').value;const cf=document.getElementById('cp-confirm').value;const errEl=document.getElementById('cp-err');errEl.innerHTML='';if(!cur||!nw||!cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>All fields are required.</div>';return;}if(nw.length<8){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordTooShort')+'</div>';return;}if(nw!==cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordMismatch')+'</div>';return;}cpBtn.disabled=true;const result=await apiPost('/auth/change-password',{currentPassword:cur,newPassword:nw});cpBtn.disabled=false;if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';return;}errEl.innerHTML='<div class="alert" style="background:var(--green-light);color:var(--green);border-color:rgba(19,136,8,.2)"><span class="alert-icon">✅</span>'+t('passwordChanged')+'</div>';document.getElementById('cp-current').value='';document.getElementById('cp-new').value='';document.getElementById('cp-confirm').value='';});}
+
+  // ── Admin password ────────────────────────────────────────
+  var cpBtn=document.getElementById('cp-submit');
+  if(cpBtn){cpBtn.addEventListener('click',async function(){
+    const cur=document.getElementById('cp-current').value;
+    const nw=document.getElementById('cp-new').value;
+    const cf=document.getElementById('cp-confirm').value;
+    const errEl=document.getElementById('cp-err');
+    errEl.innerHTML='';
+    if(!cur||!nw||!cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>All fields are required.</div>';return;}
+    if(nw.length<8){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordTooShort')+'</div>';return;}
+    if(nw!==cf){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordMismatch')+'</div>';return;}
+    cpBtn.disabled=true;
+    const result=await apiPost('/auth/change-password',{currentPassword:cur,newPassword:nw});
+    cpBtn.disabled=false;
+    if(result&&result.error){errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';return;}
+    errEl.innerHTML='<div class="alert" style="background:var(--green-light);color:var(--green);border-color:rgba(19,136,8,.2)"><span class="alert-icon">✅</span>'+t('passwordChanged')+'</div>';
+    document.getElementById('cp-current').value='';
+    document.getElementById('cp-new').value='';
+    document.getElementById('cp-confirm').value='';
+  });}
+
+  // ── Operator password ─────────────────────────────────────
+  (function(){
+    var opBtn=document.getElementById('op-submit');
+    if(!opBtn)return;
+    var _opBusy=false;
+    async function handleOpPwSubmit(e){
+      e.preventDefault();
+      if(_opBusy)return;
+      _opBusy=true;
+      opBtn.disabled=true;
+      var curEl=document.getElementById('op-current');
+      var newEl=document.getElementById('op-new');
+      var cfEl=document.getElementById('op-confirm');
+      var errEl=document.getElementById('op-err');
+      errEl.innerHTML='';
+      var cur=curEl?curEl.value:'';
+      var nw=newEl?newEl.value:'';
+      var cf=cfEl?cfEl.value:'';
+      if(!cur||!nw||!cf){
+        errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>All fields are required.</div>';
+        opBtn.disabled=false;_opBusy=false;return;
+      }
+      if(nw.length<8){
+        errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordTooShort')+'</div>';
+        opBtn.disabled=false;_opBusy=false;return;
+      }
+      if(nw!==cf){
+        errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+t('passwordMismatch')+'</div>';
+        opBtn.disabled=false;_opBusy=false;return;
+      }
+      try{
+        var result=await apiPost('/auth/change-operator-password',{currentPassword:cur,newPassword:nw});
+        if(result&&result.error){
+          errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>'+h(result.error)+'</div>';
+          opBtn.disabled=false;_opBusy=false;return;
+        }
+        errEl.innerHTML='<div class="alert" style="background:var(--green-light);color:var(--green);border-color:rgba(19,136,8,.2)"><span class="alert-icon">✅</span>Operator password updated successfully.</div>';
+        if(curEl)curEl.value='';
+        if(newEl)newEl.value='';
+        if(cfEl)cfEl.value='';
+      }catch(err){
+        errEl.innerHTML='<div class="alert alert-danger"><span class="alert-icon">⚠️</span>Network error. Please try again.</div>';
+      }
+      opBtn.disabled=false;
+      _opBusy=false;
+    }
+    opBtn.addEventListener('click',handleOpPwSubmit,{once:true,passive:false});
+  })();
 }
 
 // Language + logout
@@ -751,7 +1335,6 @@ function applyStaticTranslations(){
 }
 
 // ── Topbar settings link ──────────────────────────────────────
-// Inject into topbar right after admin badge
 (function(){
   const right=document.querySelector('.topbar-right');if(!right)return;
   const sBtn=document.createElement('button');sBtn.className='nav-btn';sBtn.style.cssText='background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:.3rem .75rem;font-size:12px';sBtn.textContent='⚙️';sBtn.title='Settings';sBtn.addEventListener('click',function(){go('settings');});right.insertBefore(sBtn,document.getElementById('save-status'));
@@ -761,7 +1344,6 @@ function applyStaticTranslations(){
 CURRENT_LANG=getSavedLang();applyStaticTranslations();
 const existingToken=getToken();
 if(existingToken){
-  // Verify token is still valid
   fetch(API_BASE+'/auth/verify',{headers:{'Authorization':'Bearer '+existingToken}}).then(r=>{if(r.ok)return r.json();throw new Error('invalid');}).then(data=>{document.getElementById('admin-username-badge').textContent=data.username||'Admin';showApp();}).catch(()=>{clearToken();showLogin();});
 }else{showLogin();}
 </script>

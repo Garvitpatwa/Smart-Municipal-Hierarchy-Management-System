@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jhansi Nagar Nigam - HMS Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --saffron: #FF9933;
+            --white: #FFFFFF;
+            --green: #138808;
+            --dark-blue: #003366;
+            --light-gray: #F5F5F5;
+            --border-gray: #E0E0E0;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --error-red: #DC3545;
+            --success-green: #28A745;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--saffron) 50%, var(--green) 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header with Tricolor Bar */
+        .header {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-lg);
+            border-bottom: 4px solid var(--saffron);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--saffron) 0%, var(--green) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            color: var(--dark-blue);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .date-time {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .date-time .date {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .date-time .time {
+            color: var(--saffron);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .language-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--light-gray);
+            padding: 0.4rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-gray);
+        }
+
+        .lang-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--white);
+            color: var(--saffron);
+            box-shadow: var(--shadow);
+        }
+
+        .lang-btn:hover {
+            color: var(--dark-blue);
+        }
+
+        /* Main Content */
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 450px;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-lg);
+            border-top: 4px solid var(--saffron);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h2 {
+            color: var(--dark-blue);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .tricolor-accent {
+            height: 3px;
+            width: 60px;
+            margin: 1rem auto;
+            background: linear-gradient(90deg, var(--saffron) 0%, var(--white) 50%, var(--green) 100%);
+            border-radius: 2px;
+        }
+
+        /* Form Styling */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-gray);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--saffron);
+            box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.1);
+            background: rgba(255, 153, 51, 0.02);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-light);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-password:hover {
+            color: var(--saffron);
+        }
+
+        .login-button {
+            padding: 0.85rem 1.5rem;
+            background: linear-gradient(135deg, var(--saffron) 0%, #FF8000 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            margin-top: 0.5rem;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 153, 51, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Message Alerts */
+        .message-alert {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-alert.error {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--error-red);
+            border-left: 4px solid var(--error-red);
+            display: block;
+        }
+
+        .message-alert.success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success-green);
+            border-left: 4px solid var(--success-green);
+            display: block;
+        }
+
+        .message-alert.info {
+            background: rgba(0, 51, 102, 0.1);
+            color: var(--dark-blue);
+            border-left: 4px solid var(--dark-blue);
+            display: block;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--white);
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-gray);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-text {
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .footer-subtext {
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .tricolor-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--saffron) 0%, var(--white) 50%, var(--green) 100%);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--white);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-button.loading .spinner {
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .login-button.loading {
+            pointer-events: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .header-right {
+                gap: 1rem;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .logo-section {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .main-container {
+                padding: 1.5rem;
+            }
+
+            .login-wrapper {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .logo-text h1 {
+                font-size: 1.1rem;
+            }
+
+            .date-time {
+                font-size: 0.8rem;
+            }
+
+            .date-time .time {
+                font-size: 0.95rem;
+            }
+
+            .login-card {
+                padding: 1.5rem 1rem;
+                border-radius: 8px;
+            }
+
+            .login-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .login-header p {
+                font-size: 0.85rem;
+            }
+
+            .form-group input {
+                padding: 0.65rem 0.75rem;
+                font-size: 16px;
+            }
+
+            .login-button {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.95rem;
+            }
+
+            .footer {
+                padding: 1rem;
+                font-size: 0.75rem;
+            }
+
+            .footer-text {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-circle">🏛️</div>
+                <div class="logo-text">
+                    <h1 id="org-name">Jhansi Nagar Nigam</h1>
+                    <p id="org-subtitle">Hierarchy Management System</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="date-time">
+                    <div class="date" id="current-date">Loading...</div>
+                    <div class="time" id="current-time">00:00:00</div>
+                </div>
+                <div class="language-toggle">
+                    <button class="lang-btn active" data-lang="en" id="lang-en">English</button>
+                    <button class="lang-btn" data-lang="hi" id="lang-hi">हिंदी</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="login-wrapper">
+            <div class="login-card">
+                <div class="login-header">
+                    <h2 id="login-title">Login</h2>
+                    <p id="login-subtitle">Hierarchy Management System</p>
+                    <div class="tricolor-accent"></div>
+                </div>
+
+                <div id="message-alert" class="message-alert"></div>
+
+                <form class="login-form" id="login-form">
+                    <div class="form-group">
+                        <label for="username" id="label-username">Username</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            placeholder="Enter your username"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" id="label-password">Password</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="toggle-btn">👁️</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-button" id="login-btn">
+                        <span class="spinner"></span>
+                        <span id="btn-text">Login</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="tricolor-line"></div>
+            <div class="footer-text" id="footer-text">Jhansi Nagar Nigam</div>
+            <div class="footer-subtext" id="footer-subtext">Government of Uttar Pradesh | Empowering Through Technology</div>
+        </div>
+    </div>
+
+    <script>
+        // Language Translations
+        const translations = {
+            en: {
+                'org-name': 'Jhansi Nagar Nigam',
+                'org-subtitle': 'Hierarchy Management System',
+                'login-title': 'Login',
+                'login-subtitle': 'Hierarchy Management System',
+                'label-username': 'Username',
+                'label-password': 'Password',
+                'btn-text': 'Login',
+                'placeholder-username': 'Enter your username',
+                'placeholder-password': 'Enter your password',
+                'footer-text': 'Jhansi Nagar Nigam',
+                'footer-subtext': 'Government of Uttar Pradesh | Empowering Through Technology',
+                'error-invalid': 'Invalid Username or Password',
+                'error-empty': 'Please fill in all fields',
+                'error-invalid-admin': 'Invalid Admin credentials',
+                'error-invalid-operator': 'Invalid Operator credentials',
+                'success-login': 'Login successful! Redirecting...',
+                'loading': 'Logging in...'
+            },
+            hi: {
+                'org-name': 'झांसी नगर निगम',
+                'org-subtitle': 'पदानुक्रम प्रबंधन प्रणाली',
+                'login-title': 'लॉगिन',
+                'login-subtitle': 'पदानुक्रम प्रबंधन प्रणाली',
+                'label-username': 'उपयोगकर्ता नाम',
+                'label-password': 'पासवर्ड',
+                'btn-text': 'लॉगिन करें',
+                'placeholder-username': 'अपना उपयोगकर्ता नाम दर्ज करें',
+                'placeholder-password': 'अपना पासवर्ड दर्ज करें',
+                'footer-text': 'झांसी नगर निगम',
+                'footer-subtext': 'उत्तर प्रदेश सरकार | प्रौद्योगिकी के माध्यम से सशक्तिकरण',
+                'error-invalid': 'अमान्य उपयोगकर्ता नाम या पासवर्ड',
+                'error-empty': 'कृपया सभी फ़ील्ड भरें',
+                'error-invalid-admin': 'अमान्य व्यवस्थापक क्रेडेंशियल्स',
+                'error-invalid-operator': 'अमान्य ऑपरेटर क्रेडेंशियल्स',
+                'success-login': 'लॉगिन सफल! पुनर्निर्देशित किया जा रहा है...',
+                'loading': 'लॉगिन किया जा रहा है...'
+            }
+        };
+
+        // Current Language
+        let currentLang = localStorage.getItem('hms-language') || 'en';
+
+        // DOM Elements
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginForm = document.getElementById('login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const messageAlert = document.getElementById('message-alert');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const currentDateEl = document.getElementById('current-date');
+        const currentTimeEl = document.getElementById('current-time');
+        const langBtns = document.querySelectorAll('.lang-btn');
+
+        // Initialize
+        function init() {
+
+            // Read latest language from localStorage
+            currentLang = localStorage.getItem('hms-language') || 'en';
+
+            // Apply translations
+            updateLanguage(currentLang);
+
+            // Highlight correct language button
+            langBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+        });
+
+updateDateTime();
+setInterval(updateDateTime, 1000);
+
+setupEventListeners();
+}
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            loginForm.addEventListener('submit', handleLogin);
+            toggleBtn.addEventListener('click', togglePassword);
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    changeLanguage(e.target.dataset.lang);
+                });
+            });
+        }
+
+        // Update Date and Time
+        function updateDateTime() {
+            const now = new Date();
+            
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString(currentLang === 'en' ? 'en-US' : 'hi-IN', dateOptions);
+            
+            const timeStr = now.toLocaleTimeString(currentLang === 'en' ? 'en-US' : 'hi-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            
+            currentDateEl.textContent = dateStr;
+            currentTimeEl.textContent = timeStr;
+        }
+
+        // Toggle Password Visibility
+        function togglePassword() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            toggleBtn.textContent = type === 'password' ? '👁️' : '🙈';
+        }
+
+        // Change Language
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('hms-language', lang);
+            updateLanguage(lang);
+            updateDateTime();
+            
+            langBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Update UI Language
+        function updateLanguage(lang) {
+            const trans = translations[lang];
+            
+            // Update text content
+            Object.keys(trans).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = trans[key];
+                }
+            });
+
+            // Update placeholders
+            usernameInput.placeholder = trans['placeholder-username'];
+            passwordInput.placeholder = trans['placeholder-password'];
+
+            // Update button text
+            const btnText = document.getElementById('btn-text');
+            if (btnText) {
+                btnText.textContent = trans['btn-text'];
+            }
+        }
+
+        // Handle Login
+        async function handleLogin(e) {
+        e.preventDefault();
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+            showMessage('error-empty', 'error');
+            return;
+        }
+
+        try {
+            loginBtn.disabled = true;
+            loginBtn.classList.add('loading');
+            document.getElementById('btn-text').textContent =
+                translations[currentLang]['loading'];
+
+            // Authenticate with backend
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                showMessage('error-invalid', 'error');
+
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('loading');
+                document.getElementById('btn-text').textContent =
+                    translations[currentLang]['login'];
+
+                clearForm();
+                return;
+            }
+
+            // Save JWT token (same key used by admin panel)
+            sessionStorage.setItem('hms_admin_token', data.token);
+
+            // Save user info
+            localStorage.setItem('hms-user-role', data.role);
+            localStorage.setItem('hms-username', data.username);
+
+            showMessage('success-login', 'success');
+
+            // Redirect according to role
+            setTimeout(() => {
+                if (data.role === 'admin') {
+                    window.location.href = '/admin';
+                } else if (data.role === 'operator') {
+                    window.location.href = '/operator';
+                } else {
+                    showMessage('error-invalid', 'error');
+                }
+            }, 600);
+
+            } catch (err) {
+                console.error(err);
+            
+                showMessage('error-invalid', 'error');
+            
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('loading');
+                document.getElementById('btn-text').textContent =
+                    translations[currentLang]['login'];
+            }
+        }
+        
+        // Show Message
+        function showMessage(key, type) {
+            const message = translations[currentLang][key];
+            messageAlert.textContent = message;
+            messageAlert.className = `message-alert ${type}`;
+            
+            setTimeout(() => {
+                messageAlert.className = 'message-alert';
+            }, 5000);
+        }
+
+        // Clear Form
+        function clearForm() {
+            passwordInput.value = '';
+            usernameInput.focus();
+        }
+
+        // Start App
+        init();
+        window.addEventListener('pageshow', function () {
+
+            // Read saved language
+            currentLang = localStorage.getItem('hms-language') || 'en';
+
+            // Update the complete UI
+            updateLanguage(currentLang);
+
+            // Highlight active language button
+            langBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
+
+            // Reset login button
+            loginBtn.disabled = false;
+            loginBtn.classList.remove('loading');
+
+            // Clear password
+            passwordInput.value = '';
+
+            // Hide any message
+            messageAlert.className = 'message-alert';
+
+        });
+        
+    </script>
+</body>
+</html>

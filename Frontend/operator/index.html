@@ -123,20 +123,14 @@ body{
   border:1px solid rgba(19,136,8,.5);
 }
 .btn-admin{
-  display:inline-flex;align-items:center;gap:.35rem;
-  background:rgba(232,135,43,.2);color:var(--gold);
-  border:1.5px solid rgba(232,135,43,.4);border-radius:100px;
-  padding:.3rem .75rem;font-size:12px;font-weight:600;
-  cursor:pointer;font-family:inherit;transition:all var(--tf);
-  text-decoration:none;letter-spacing:.3px;
-  white-space:nowrap;
-}
+background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);color:#EF9A9A;border-radius:100px;padding:.28rem .85rem;font-size:12px;font-weight:600;cursor:pointer;transition:all var(--t-fast);font-family:inherit}
+
+
+
 .btn-admin:hover{
-  background:rgba(232,135,43,.3);border-color:rgba(232,135,43,.6);
-  transform:translateY(-1px);box-shadow:0 2px 8px rgba(232,135,43,.2);
+  background:var(--red);color:var(--white);border-color:var(--red)
 }
 .btn-admin:active{transform:scale(.96)}
-
 /* Gold bottom border with Ashok Chakra accent */
 .header-bottom{
     display:flex;
@@ -526,7 +520,7 @@ body{
           <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">English</button>
           <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हिन्दी</button>
         </div>
-        <button class="btn-admin" onclick="window.location.href='/admin'" title="Admin Panel">👤 <span data-i18n="adminLogin">Admin Login</span></button>
+        <button class="btn-admin" onclick="window.location.href='/admin'" title="Admin Panel">⎋ Logout</button>
       </div>
     </div>
   </div>
@@ -696,9 +690,10 @@ updateClock();
 setInterval(updateClock, 1000);
 
 // ── State ────────────────────────────────────────────────────────
-let ALL_DEPTS   = [];
-let ALL_ZONES   = [];
-let ALL_OFFS    = [];
+let ALL_DEPTS      = [];
+let ALL_ZONES      = [];
+let ALL_OFFS       = [];
+let ALL_LEVELNAMES = [];
 
 // Initialize language on load
 setLanguage(CURRENT_LANG);
@@ -707,19 +702,84 @@ let OPEN_ID     = null;   // currently open dept id
 let SEARCH_Q    = '';
 
 // ── Fetch all public data ────────────────────────────────────────
+//
+// ROOT CAUSE OF "Level names show as plain L1/L2 in Operator but show
+// correctly in Admin": the Admin panel always calls /api/levelnames
+// WITH an Authorization: Bearer <token> header (see admin's
+// loadAllData()). The Operator view is unauthenticated by design and
+// was calling the SAME endpoint with NO auth header. If the backend
+// route for /api/levelnames enforces admin auth (unlike its sibling
+// public routes /departments, /zones, /officers), that fetch returns
+// a 401/403 (often as a JSON body like {"error":"..."} rather than an
+// array). `Array.isArray(levelNames)` then evaluates to false and
+// ALL_LEVELNAMES silently became [] — with NO visible error anywhere.
+// Every subsequent getLevelNameRecord() lookup returned null, so
+// getLevelLabel() fell back to the bare "L{n}" label in BOTH the
+// on-screen report table and the printable PDF, even though the
+// lookup/formatting logic itself (copied verbatim from Admin) was
+// correct the whole time.
+//
+// Fix applied here (front-end side): treat each levelnames response
+// explicitly — check response.ok and that the parsed body is an
+// array before accepting it, and log a clear, actionable console
+// warning when it isn't, instead of silently coercing to [].
+// IMPORTANT: this still requires the corresponding backend route
+// change — /api/levelnames must be served as a PUBLIC GET route
+// (no auth requirement), exactly like /api/departments, /api/zones,
+// and /api/officers already are, since the Operator view has no
+// token to send. No Admin logic was duplicated or altered; Operator
+// continues to use the exact same getLevelNameRecord/getLevelDisplayName/
+// getLevelLabel functions it already had, which mirror Admin's.
+async function fetchLevelNamesSafely() {
+  try {
+    const resp = await fetch(API + '/levelnames');
+    if (!resp.ok) {
+      console.warn(
+        '[HMS Operator] /api/levelnames responded with status ' + resp.status +
+        '. This endpoint must be public (no auth) for the Operator view, ' +
+        'the same way /api/departments, /api/zones and /api/officers are. ' +
+        'Level names will fall back to plain L1/L2/... until this is fixed server-side.'
+      );
+      return [];
+    }
+    const data = await resp.json();
+    if (!Array.isArray(data)) {
+      console.warn(
+        '[HMS Operator] /api/levelnames did not return an array (got: ' +
+        JSON.stringify(data).slice(0, 200) + '). Treating as no level names available.'
+      );
+      return [];
+    }
+    return data;
+  } catch (e) {
+    console.warn('[HMS Operator] /api/levelnames fetch failed:', e);
+    return [];
+  }
+}
+
 async function fetchData() {
   try {
-    const [depts, zones, offs] = await Promise.all([
+    const [depts, zones, offs, levelNames] = await Promise.all([
       fetch(API + '/departments').then(r => r.json()),
       fetch(API + '/zones').then(r => r.json()),
       fetch(API + '/officers').then(r => r.json()),
+      fetchLevelNamesSafely(),
     ]);
     ALL_DEPTS = Array.isArray(depts) ? depts : [];
     ALL_ZONES = Array.isArray(zones) ? zones : [];
     ALL_OFFS  = Array.isArray(offs)  ? offs.map(o => Object.assign({isZonal:false}, o, {isZonal:!!o.isZonal})) : [];
+    ALL_LEVELNAMES = Array.isArray(levelNames) ? levelNames : [];
+
+    if (!ALL_LEVELNAMES.length) {
+      console.warn(
+        '[HMS Operator] ALL_LEVELNAMES is empty. Hierarchy level labels will show as ' +
+        'plain L1/L2/... instead of names like "Revenue Inspector (L1)". ' +
+        'Verify /api/levelnames is reachable WITHOUT authentication from this view.'
+      );
+    }
   } catch (e) {
     console.error('HMS API error:', e);
-    ALL_DEPTS = []; ALL_ZONES = []; ALL_OFFS = [];
+    ALL_DEPTS = []; ALL_ZONES = []; ALL_OFFS = []; ALL_LEVELNAMES = [];
   }
 }
 
@@ -730,6 +790,26 @@ function dId(d)            { return d._id || d.id; }
 function supIds(o)         { return Array.isArray(o.supIds) ? o.supIds : (o.supId ? [o.supId] : []); }
 function getOffById(id)    { return ALL_OFFS.find(o => offId(o) === id); }
 function getZoneById(id)   { return ALL_ZONES.find(z => (z._id || z.id) === id); }
+
+// ── Level Name helpers (mirror admin logic exactly — same source) ──
+// A LevelName record is keyed by (deptId, level) and is shared by
+// every officer at that level within that department. This must stay
+// in sync with the identical helpers in the Admin panel since both
+// read from the same /api/levelnames endpoint.
+function getLevelNameRecord(deptId, level) {
+  const lvl = parseInt(level);
+  return ALL_LEVELNAMES.find(ln => ln.deptId === deptId && Number(ln.level) === lvl) || null;
+}
+function getLevelDisplayName(deptId, level) {
+  const rec = getLevelNameRecord(deptId, level);
+  if (!rec) return '';
+  const name = (CURRENT_LANG === 'hi') ? (rec.nameHi || rec.nameEn || '') : (rec.nameEn || rec.nameHi || '');
+  return name || '';
+}
+function getLevelLabel(deptId, level) {
+  const name = getLevelDisplayName(deptId, level);
+  return name ? (name + ' (L' + level + ')') : ('L' + level);
+}
 
 function getDeptMaxLevel(deptId) {
   const offs = getOffs(deptId);
@@ -892,9 +972,12 @@ function renderReport(deptId) {
   const rows = buildReportRows(deptId);
   const maxLevel = getDeptMaxLevel(deptId);
 
-  // Build table HTML
-  let hdrs = '<th style="width:60px;text-align:center">क्र. / S.No</th><th>Zone / जोन</th><th>Wards / वार्ड</th><th>L1</th>';
-  for (let i = 2; i <= maxLevel; i++) hdrs += `<th>L${i}</th>`;
+  // Build table HTML — level headers use the same shared Level Name
+  // source/logic as the Admin report (getLevelLabel), so they show
+  // "(Level Name) (L1)" in the currently selected language when a
+  // level name has been set, falling back to plain "L1" otherwise.
+  let hdrs = '<th style="width:60px;text-align:center">क्र. / S.No</th><th>Zone / जोन</th><th>Wards / वार्ड</th><th>' + esc(getLevelLabel(deptId, 1)) + '</th>';
+  for (let i = 2; i <= maxLevel; i++) hdrs += `<th>${esc(getLevelLabel(deptId, i))}</th>`;
 
   let trs = '';
   if (!rows.length) {
@@ -950,7 +1033,6 @@ function renderReport(deptId) {
         </div>
       </div>
       <div class="report-actions">
-        <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="${t('print')}">🖨️ ${t('print')}</button>
         <button class="btn btn-navy btn-sm no-print" onclick="exportPDF('${esc(deptId)}')" title="${t('pdf')}">📄 ${t('pdf')}</button>
         <button class="btn btn-green btn-sm no-print" onclick="exportExcel('${esc(deptId)}')" title="${t('excel')}">📊 ${t('excel')}</button>
       </div>
@@ -990,59 +1072,193 @@ function officerCellHTML(officerList, zone, wrap) {
   return wrap ? lines : `<td class="cell-dash">${lines}</td>`;
 }
 
-// ── PDF Export ───────────────────────────────────────────────────
+// ── PROFESSIONAL PDF EXPORT (Identical to Admin) ──────────────────
+// Using iframe + browser print approach for perfect Hindi/English support
+
+function fmtOfficerBlockForPrint(list, zone) {
+  if (!list || !list.length) return '<span class="dash">—</span>';
+  return list.map(function (o) {
+    let dn = o.name, dd = o.desig, dm = o.mobile;
+    if (o.isZonal) {
+      dn = (zone && zone.zonalOfficerName) ? zone.zonalOfficerName : 'Unassigned';
+      dm = (zone && zone.zonalOfficerMobile) ? zone.zonalOfficerMobile : '';
+      dd = '';
+    }
+    return '<div class="officer-block">'
+      + '<div class="o-name">' + h(dn) + '</div>'
+      + (dd ? '<div class="o-desig">' + h(dd) + '</div>' : '')
+      + (dm ? '<div class="o-mobile">📞 ' + h(dm) + '</div>' : '')
+      + '</div>';
+  }).join('<div class="o-sep"></div>');
+}
+
+function buildPrintableReportHTML(deptId) {
+  const d = ALL_DEPTS.find(d => dId(d) === deptId);
+  if (!d) return null;
+
+  const deptDisplayName = d.name;
+  const deptDisplayHindi = d.hindi || '';
+  const maxLevel = getDeptMaxLevel(deptId);
+  const rows = buildReportRows(deptId);
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+  // Level-name headers — same dynamic source (getLevelLabel) as the
+  // on-screen report and the Admin PDF, so a level-name change or
+  // an added/removed level in Admin automatically reflects here too.
+  let headCols = '<th class="col-sno">' + h(t('sno') || 'S.No.') + '</th>'
+               + '<th class="col-zone">' + h(t('zoneNoCol') || 'Zone No') + '</th>'
+               + '<th class="col-wards">' + h(t('wardNo') || 'Ward No') + '</th>'
+               + '<th class="col-l">' + h(getLevelLabel(deptId, 1)) + '</th>';
+  for (let i = 2; i <= maxLevel; i++) headCols += '<th class="col-l">' + h(getLevelLabel(deptId, i)) + '</th>';
+  const totalCols = 3 + maxLevel;
+
+  let bodyRows = '';
+  if (!rows.length) {
+    bodyRows = '<tr><td colspan="' + totalCols + '" class="empty-cell">' + h(t('noOfficers') || 'No officers') + '</td></tr>';
+  } else {
+    rows.forEach(function (r) {
+      const zoneHtml = r.zone
+        ? '<div class="zone-en">' + h(r.zone.zone) + '</div>' + (r.zone.zoneHindi ? '<div class="zone-hi">' + h(r.zone.zoneHindi) + '</div>' : '')
+        : '<span class="dash">Unassigned</span>';
+
+      const wardsHtml = (r.wards || []).map(function (w) { return '<span class="ward-chip">' + h(w) + '</span>'; }).join(' ');
+
+      let cells = '<td class="cell-sno">' + r.no + '</td>'
+        + '<td class="cell-zone">' + zoneHtml + '</td>'
+        + '<td class="cell-wards">' + (wardsHtml || '<span class="dash">—</span>') + '</td>'
+        + '<td class="cell-off">' + fmtOfficerBlockForPrint([r.l1], r.zone) + '</td>';
+
+      r.chains.forEach(function (oList) {
+        cells += '<td class="cell-off">' + fmtOfficerBlockForPrint(oList, r.zone) + '</td>';
+      });
+
+      bodyRows += '<tr>' + cells + '</tr>';
+    });
+  }
+
+  return '<!DOCTYPE html>'
+    + '<html lang="' + CURRENT_LANG + '">'
+    + '<head>'
+    + '<meta charset="UTF-8">'
+    + '<title>' + h(deptDisplayName.replace(/\s+/g, '_')) + '_Report</title>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
+    + '<style>'
+    + '  @page { size: A4 landscape; margin: 12mm 10mm 14mm; }'
+    + '  *{ box-sizing:border-box; margin:0; padding:0; }'
+    + '  html,body{ font-family:"Inter","Noto Sans Devanagari",Arial,sans-serif; color:#1A1E2E; -webkit-print-color-adjust:exact; print-color-adjust:exact; }'
+    + '  .report-header{ display:flex; align-items:center; gap:16px; border-bottom:3px solid #E8872B; padding-bottom:10px; margin-bottom:12px; }'
+    + '  .logo-space{ width:56px; height:56px; border:2px solid #0A2342; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; background:#F5F6FA; }'
+    + '  .header-titles{ flex:1; }'
+    + '  .header-org{ font-size:18px; font-weight:800; color:#0A2342; letter-spacing:.2px; }'
+    + '  .header-org-hi{ font-size:13px; font-weight:600; color:#0A2342; opacity:.8; margin-top:1px; }'
+    + '  .header-sys{ font-size:11.5px; color:#555; text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }'
+    + '  .header-dept-line{ font-size:14px; font-weight:700; color:#E8872B; margin-top:6px; }'
+    + '  .header-right{ text-align:right; font-size:11px; color:#555; flex-shrink:0; }'
+    + '  .header-right .gen-label{ font-weight:700; color:#0A2342; }'
+    + '  .meta-strip{ display:flex; justify-content:space-between; align-items:center; background:#F5F6FA; border:1px solid #E0E4EE; border-radius:6px; padding:6px 12px; font-size:11px; color:#333; margin-bottom:12px; }'
+    + '  .meta-strip b{ color:#0A2342; }'
+    + '  table{ width:100%; border-collapse:collapse; table-layout:fixed; border:2px solid #0A2342; }'
+    + '  thead{ display:table-header-group; }'
+    + '  tfoot{ display:table-footer-group; }'
+    + '  tr{ page-break-inside:avoid; }'
+    + '  th, td{ border:1px solid #0A2342; padding:7px 6px; font-size:10.5px; text-align:center; vertical-align:middle; word-wrap:break-word; line-height:1.35; }'
+    + '  thead th{ background:#072A57; color:#FFFFFF; font-weight:700; text-transform:uppercase; letter-spacing:.3px; font-size:10px; }'
+    + '  tbody tr:nth-child(even) td{ background:#F2F6FC; }'
+    + '  tbody tr:nth-child(odd) td{ background:#FFFFFF; }'
+    + '  .col-sno{ width:6%; } .col-zone{ width:11%; } .col-wards{ width:15%; } .col-l{ width:auto; }'
+    + '  .cell-sno{ font-weight:700; color:#444; }'
+    + '  .zone-en{ font-weight:700; color:#0A2342; } .zone-hi{ font-size:9px; color:#666; margin-top:1px; }'
+    + '  .ward-chip{ display:inline-block; background:#EEF3FF; border:1px solid #C9D4ED; border-radius:4px; padding:1px 6px; margin:1.5px; font-size:9px; font-weight:600; color:#0A2342; }'
+    + '  .officer-block{ padding:2px 0; }'
+    + '  .o-name{ font-weight:700; color:#0A2342; font-size:10.5px; }'
+    + '  .o-desig{ font-size:9px; color:#666; margin-top:1px; font-style:italic; }'
+    + '  .o-mobile{ font-size:9px; color:#0A2342; margin-top:1px; font-family:monospace; }'
+    + '  .o-sep{ height:1px; background:#D6DCE9; margin:4px 2px; }'
+    + '  .dash{ color:#999; }'
+    + '  .empty-cell{ padding:30px; color:#555; font-size:12.5px; font-weight:600; }'
+    + '  .report-footer{ margin-top:12px; font-size:9.5px; color:#777; text-align:center; border-top:1px solid #ccc; padding-top:7px; }'
+    + '  .page-footer-note{ font-size:9px; color:#999; text-align:center; margin-top:3px; }'
+    + '  @media print{ .no-print{ display:none !important; } }'
+    + '</style>'
+    + '</head>'
+    + '<body>'
+    + '  <div class="report-header">'
+    + '    <div class="logo-space">🏛️</div>'
+    + '    <div class="header-titles">'
+    + '      <div class="header-org">Jhansi Nagar Nigam</div>'
+    + '      <div class="header-org-hi">झांसी नगर निगम</div>'
+    + '      <div class="header-sys">Smart Municipal Hierarchy Management System</div>'
+    + '      <div class="header-dept-line">'
+    + h(deptDisplayName) + (deptDisplayHindi ? ' / ' + h(deptDisplayHindi) : '') + ' — ' + h(t('hierarchyReport'))
+    + '      </div>'
+    + '    </div>'
+    + '    <div class="header-right">'
+    + '      <div class="gen-label">' + h(CURRENT_LANG === 'hi' ? 'जनरेट किया गया' : 'Generated') + '</div>'
+    + '      <div>' + h(dateStr) + '</div>'
+    + '      <div>' + h(timeStr) + '</div>'
+    + '    </div>'
+    + '  </div>'
+    + '  <div class="meta-strip">'
+    + '    <span>Department: <b>' + h(deptDisplayName) + '</b></span>'
+    + '    <span>Levels: <b>L1 – L' + maxLevel + '</b></span>'
+    + '    <span>L1 Officers: <b>' + rows.length + '</b></span>'
+    + '  </div>'
+    + '  <table>'
+    + '    <thead><tr>' + headCols + '</tr></thead>'
+    + '    <tbody>' + bodyRows + '</tbody>'
+    + '  </table>'
+    + '  <div class="report-footer">'
+    + '    Government of Uttar Pradesh &nbsp;|&nbsp; Jhansi Nagar Nigam &nbsp;|&nbsp; Smart Municipal HMS &nbsp;|&nbsp; Operator View &nbsp;|&nbsp; Confidential — Official Use Only'
+    + '  </div>'
+    + '  <div class="page-footer-note">This is a system-generated hierarchy report.</div>'
+    + '  <script>'
+    + '    window.onload = function () {'
+    + '      setTimeout(function () { window.focus(); window.print(); }, 250);'
+    + '    };'
+    + '  <\/script>'
+    + '</body>'
+    + '</html>';
+}
+
 function exportPDF(deptId) {
   const d = ALL_DEPTS.find(d => dId(d) === deptId);
   if (!d) return;
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-    const deptDisplayName = CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name;
-    
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-    doc.text(deptDisplayName + ' — Hierarchy Report', 14, 15);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-    doc.text('Jhansi Nagar Nigam | Generated: ' + new Date().toLocaleDateString('en-IN'), 14, 22);
+  const html = buildPrintableReportHTML(deptId);
+  if (!html) return;
 
-    const maxLevel = getDeptMaxLevel(deptId);
-    const rows = buildReportRows(deptId);
+  // Remove any previous print frame
+  const existing = document.getElementById('hms-print-frame');
+  if (existing) existing.remove();
 
-    function fmtList(list, zone) {
-      if (!list || !list.length) return '—';
-      return list.map(o => {
-        let dn = o.name, dd = o.desig;
-        if (o.isZonal) {
-          dn = (zone && zone.zonalOfficerName) ? zone.zonalOfficerName : 'Unassigned';
-          dd = '';
-        }
-        return dn + (dd ? '\n' + dd : '');
-      }).join('\n\n');
-    }
+  // Hidden iframe so the operator stays on the current page while the
+  // browser's print dialog (Save as PDF) opens for the report.
+  const iframe = document.createElement('iframe');
+  iframe.id = 'hms-print-frame';
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
 
-    const head = ['S.No', 'Zone', 'Wards', 'L1'];
-    for (let i = 2; i <= maxLevel; i++) head.push('L' + i);
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
 
-    const body = rows.map(r => {
-      const zl = r.zone ? (r.zone.zone + (r.zone.zoneHindi ? ' (' + r.zone.zoneHindi + ')' : '')) : 'Unassigned';
-      const row = [String(r.no), zl, r.wards.join(', '), r.l1.name + (r.l1.desig ? '\n' + r.l1.desig : '')];
-      r.chains.forEach(ol => row.push(fmtList(ol, r.zone)));
-      return row;
-    });
-
-    doc.autoTable({
-      head: [head], body,
-      startY: 28,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [7, 42, 87], textColor: [255, 255, 255], fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [240, 246, 255] },
-      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 38 }, 2: { cellWidth: 44 } }
-    });
-
-    doc.save(deptDisplayName.replace(/\s+/g, '_') + '_Report.pdf');
-  } catch (e) {
-    window.print();
-  }
+  // Clean up the iframe a while after the print dialog would have closed
+  setTimeout(function () {
+    const f = document.getElementById('hms-print-frame');
+    if (f) f.remove();
+  }, 20000);
 }
 
 // ── Excel Export ──────────────────────────────────────────────────
@@ -1050,17 +1266,21 @@ function exportExcel(deptId) {
   const d = ALL_DEPTS.find(d => dId(d) === deptId);
   if (!d) return;
   try {
-    const deptDisplayName = CURRENT_LANG === 'hi' && d.hindi ? d.hindi : d.name;
     const maxLevel = getDeptMaxLevel(deptId);
     const rows = buildReportRows(deptId);
 
     function fmtCell(list, zone) {
       if (!list || !list.length) return '—';
-      return list.map(o => {
+      return list.map(function (o) {
         let dn = o.name, dd = o.desig, dm = o.mobile;
         if (o.isZonal) {
-          dn = (zone && zone.zonalOfficerName) ? zone.zonalOfficerName : 'Unassigned';
-          dm = (zone && zone.zonalOfficerMobile) ? zone.zonalOfficerMobile : '';
+          if (zone && zone.zonalOfficerName) {
+            dn = zone.zonalOfficerName;
+            dm = zone.zonalOfficerMobile || '';
+          } else {
+            dn = 'Unassigned';
+            dm = '';
+          }
           dd = '';
         }
         let l = dn;
@@ -1072,28 +1292,34 @@ function exportExcel(deptId) {
 
     function fmtL1(o) {
       let l = o.name;
-      if (o.desig)  l += ' (' + o.desig  + ')';
+      if (o.desig) l += ' (' + o.desig + ')';
       if (o.mobile) l += ' [' + o.mobile + ']';
       return l;
     }
 
-    const headers = ['S.No', 'Zone', 'Wards', 'L1'];
-    for (let i = 2; i <= maxLevel; i++) headers.push('L' + i);
+    // Spreadsheet column headers also use the dynamic level names so
+    // the exported Excel matches the on-screen report and the PDF.
+    const headers = ['S.No', 'Zone', 'Wards', getLevelLabel(deptId, 1)];
+    for (let i = 2; i <= maxLevel; i++) headers.push(getLevelLabel(deptId, i));
 
-    const dataRows = rows.map(r => {
-      const zl = r.zone ? (r.zone.zone + (r.zone.zoneHindi ? ' (' + r.zone.zoneHindi + ')' : '')) : 'Unassigned';
-      const row = [r.no, zl, r.wards.join(', '), fmtL1(r.l1)];
-      r.chains.forEach(ol => row.push(fmtCell(ol, r.zone)));
-      return row;
+    const dataRows = rows.map(function (r) {
+      const zoneLabel = r.zone ? (r.zone.zone + (r.zone.zoneHindi ? ' (' + r.zone.zoneHindi + ')' : '')) : 'Unassigned';
+      const rowArr = [r.no, zoneLabel, r.wards.join(', '), fmtL1(r.l1)];
+      r.chains.forEach(function (oList) {
+        rowArr.push(fmtCell(oList, r.zone));
+      });
+      return rowArr;
     });
 
     const ws = XLSX.utils.aoa_to_sheet([headers].concat(dataRows));
-    ws['!cols'] = headers.map((_, i) => i === 0 ? { wch: 8 } : { wch: 28 });
+    ws['!cols'] = headers.map(function (_, i) {
+      return i === 0 ? { wch: 8 } : { wch: 26 };
+    });
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Hierarchy Report');
-    XLSX.writeFile(wb, deptDisplayName.replace(/\s+/g, '_') + '_Report.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, t('hierarchyReport').slice(0, 31) || 'Report');
+    XLSX.writeFile(wb, (d.name || 'Department').replace(/\s+/g, '_') + '_Report.xlsx');
   } catch (e) {
-    alert('Excel export failed. Please try PDF or Print.');
+    alert('Excel export failed.');
   }
 }
 

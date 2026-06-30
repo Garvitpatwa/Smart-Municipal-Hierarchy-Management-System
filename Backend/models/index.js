@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   username:  { type: String, required: true, unique: true, trim: true, lowercase: true },
   password:  { type: String, required: true },           // bcrypt hash
-  role:      { type: String, enum: ['admin'], default: 'admin' },
+  role:      { type: String, enum: ['admin','operator'], default: 'admin' },
   createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model('User', userSchema);
@@ -50,4 +50,18 @@ const Officer = mongoose.model('Officer', new mongoose.Schema({
   isZonal: { type: Boolean, default: false }
 }, { timestamps: true }));
 
-module.exports = { User, Department, Zone, Officer };
+// ── LevelName ────────────────────────────────────────────────
+// Stores the English/Hindi display name for a given (deptId, level)
+// combination. One record per department+level. Shared across all
+// officers at that level within that department.
+const LevelName = mongoose.model('LevelName', new mongoose.Schema({
+  _id:        { type: String, required: true },
+  deptId:     { type: String, required: true, index: true },
+  level:      { type: Number, required: true, min: 1 },
+  nameEn:     { type: String, default: '' },
+  nameHi:     { type: String, default: '' },
+  defaultDesig: { type: String, default: '' }
+}, { timestamps: true }));
+LevelName.schema.index({ deptId: 1, level: 1 }, { unique: true });
+
+module.exports = { User, Department, Zone, Officer, LevelName };

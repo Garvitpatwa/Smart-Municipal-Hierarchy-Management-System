@@ -5,7 +5,7 @@ const express = require('express');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const { User } = require('../models');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -21,6 +21,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials.' });
 
     const valid = await bcrypt.compare(password, user.password);
+
     if (!valid)
       return res.status(401).json({ error: 'Invalid credentials.' });
 
@@ -38,7 +39,7 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/change-password  (admin only)
-router.post('/change-password', requireAdmin, async (req, res) => {
+router.post('/change-password', requireAuth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword)
@@ -55,6 +56,36 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     await user.save();
     res.json({ message: 'Password changed successfully.' });
   } catch (err) {
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// POST /api/auth/change-operator-password  (admin only)
+router.post('/change-operator-password', requireAdmin, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ error: 'Both fields are required.' });
+
+    if (newPassword.length < 8)
+      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+
+    // Always targets the single operator account
+    const operator = await User.findOne({ role: 'operator' });
+    if (!operator)
+      return res.status(404).json({ error: 'Operator account not found.' });
+
+    const valid = await bcrypt.compare(currentPassword, operator.password);
+    if (!valid)
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+
+    operator.password = await bcrypt.hash(newPassword, 12);
+    await operator.save();
+
+    res.json({ message: 'Operator password updated successfully.' });
+  } catch (err) {
+    console.error('Change operator password error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 });

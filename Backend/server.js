@@ -3,8 +3,8 @@
 // ============================================================
 require('dotenv').config();
 const express = require('express');
-const cors    = require('cors');
-const path    = require('path');
+const cors = require('cors');
+const path = require('path');
 const connectDB = require('./db');
 
 const app = express();
@@ -15,40 +15,47 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── API Routes ───────────────────────────────────────────────
-app.use('/api/auth',        require('./Routes/auth'));
+app.use('/api/auth', require('./Routes/auth'));
 app.use('/api/departments', require('./Routes/departments'));
-app.use('/api/zones',       require('./Routes/zones'));
-app.use('/api/officers',    require('./Routes/officers'));
+app.use('/api/zones', require('./Routes/zones'));
+app.use('/api/officers', require('./Routes/officers'));
+app.use('/api/levelnames', require('./Routes/levelnames'));
+app.use('/api/admin', require('./Routes/adminOperators'));
 
-// ── Serve static frontend files ──────────────────────────────
-// /admin  → admin panel (SPA)
-// /       → operator view (SPA)
+// ── Frontend ─────────────────────────────────────────────────
 const frontendPath = path.join(__dirname, '../Frontend');
 
-// Admin panel files
+// Login page
+app.use('/', express.static(path.join(frontendPath, 'login')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'login', 'index.html'));
+});
+
+// Admin
 app.use('/admin', express.static(path.join(frontendPath, 'admin')));
 
-app.get('/admin', (req, res) =>
-  res.sendFile(path.join(frontendPath, 'admin', 'index.html'))
-);
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'admin', 'index.html'));
+});
 
-app.get('/admin/login', (req, res) =>
-  res.sendFile(path.join(frontendPath, 'admin', 'index.html'))
-);
+// Operator
+app.use('/operator', express.static(path.join(frontendPath, 'operator')));
 
-// Operator View
-app.use(express.static(path.join(frontendPath, 'operator')));
-
-app.get('*', (req, res) =>
-  res.sendFile(path.join(frontendPath, 'operator', 'index.html'))
-);
+app.get('/operator', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'operator', 'index.html'));
+});
 
 // ── Start ────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`🚀 HMS Server running on http://localhost:${PORT}`));
+    app.listen(PORT, () => {
+        console.log(`🚀 HMS Server running on http://localhost:${PORT}`);
+    });
 });

@@ -25,7 +25,24 @@ async function seedAdmin() {
     await User.create({ username: process.env.ADMIN_USERNAME || 'admin', password: hash, role: 'admin' });
     console.log('✅ Admin user seeded — username:', process.env.ADMIN_USERNAME || 'admin');
   }
+  const operatorExists = await User.findOne({
+    username: 'operator'
+  });
+  
+  if (!operatorExists) {
+    const operatorHash = await bcrypt.hash('Operator@123', 12);
+  
+    await User.create({
+      username: 'operator',
+      password: operatorHash,
+      role: 'operator'
+    });
+  
+    console.log('✅ Operator user seeded');
+  }
 }
+
+
 
 async function seedDefaultData() {
   const { Department, Zone } = require('./models');
